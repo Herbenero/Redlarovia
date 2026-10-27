@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mystic Warlords of Ka'a: Quadro Dart Edition</title>
+    <style>
+        :root {
+            --bg-dark: #121216;
+            --panel-bg: #1e1e24;
+            --accent-gold: #d4af37;
+            --accent-red: #8b0000;
+            --text-main: #f0f0f0;
+            --text-muted: #aaaaaa;
+            --border-color: #33333d;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        header h1 {
+            color: var(--accent-gold);
+            margin: 0 0 5px 0;
+            font-size: 2rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        header p {
+            color: var(--text-muted);
+            margin: 0;
+            font-size: 0.95rem;
+        }
+
+        .main-container {
+            display: grid;
+            grid-template-columns: 1fr 350px;
+            gap: 20px;
+            width: 100%;
+            max-width: 1200px;
+        }
+
+        @media (max-width: 900px) {
+            .main-container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .card-library-panel, .gamepad-panel {
+            background-color: var(--panel-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+        }
+
+        h2 {
+            border-bottom: 2px solid var(--accent-red);
+            padding-bottom: 8px;
+            margin-top: 0;
+            font-size: 1.2rem;
+            color: var(--accent-gold);
+        }
+
+        .deck-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+            gap: 15px;
+            max-height: 650px;
+            overflow-y: auto;
+            padding-right: 5px;
+        }
+
+        .card {
+            background-color: #262630;
+            border: 1px solid #444;
+            border-radius: 6px;
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            transition: transform 0.2s, border-color 0.2s;
+        }
+
+        .card:hover {
+            transform: translateY(-3px);
+            border-color: var(--accent-gold);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+            border-bottom: 1px solid #3a3a48;
+            padding-bottom: 6px;
+        }
+
+        .card-title {
+            font-weight: bold;
+            color: #fff;
+            font-size: 0.95rem;
+        }
+
+        .card-cost {
+            background-color: #3b2f00;
+            color: var(--accent-gold);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            border: 1px solid var(--accent-gold);
+        }
+
+        .card-details {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-bottom: 10px;
+        }
+
+        .card-details span {
+            color: #fff;
+            font-weight: 500;
+        }
+
+        .card-effect {
+            font-size: 0.82rem;
+            background-color: #18181f;
+            padding: 8px;
+            border-radius: 4px;
+            border-left: 3px solid var(--accent-red);
+        }
+
+        /* Game State Panel */
+        .stat-box {
+            background-color: #16161b;
+            border: 1px solid #333;
+            border-radius: 6px;
+            padding: 12px;
+            margin-bottom: 15px;
+        }
+
+        .stat-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 0.95rem;
+        }
+
+        .stat-row:last-child {
+            margin-bottom: 0;
+        }
+
+        .stat-value {
+            font-weight: bold;
+            color: var(--accent-gold);
+        }
+
+        .controls-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-bottom: 5px;
+        }
+
+        select, input, button {
+            width: 100%;
+            padding: 10px;
+            background-color: #2b2b36;
+            border: 1px solid #444;
+            color: #fff;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            box-sizing: border-box;
+        }
+
+        select:focus, input:focus {
+            outline: none;
+            border-color: var(--accent-gold);
+        }
+
+        button {
+            background-color: var(--accent-red);
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            border: none;
+            transition: background-color 0.2s;
+            margin-top: 5px;
+        }
+
+        button:hover {
+            background-color: #a30000;
+        }
+
+        button.secondary {
+            background-color: #33333d;
+            margin-top: 8px;
+        }
+
+        button.secondary:hover {
+            background-color: #444455;
+        }
+
+        .log-box {
+            background-color: #16161b;
+            border: 1px solid #333;
+            border-radius: 6px;
+            padding: 10px;
+            height: 120px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 0.8rem;
+            color: #00ffcc;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Mystic Warlords of Ka'a</h1>
+        <p>Quadro Dart Board Edition — Card Directory & Match Coordinator</p>
+    </header>
+
+    <div class="main-container">
+        <!-- Card Library Section -->
+        <div class="card-library-panel">
+            <h2>Expansions & Card Directory</h2>
+            <div class="deck-grid" id="cardGrid">
+                <!-- Cards injected dynamically via script -->
+            </div>
+        </div>
+
+        <!-- Game Simulation & Matchpad Panel -->
+        <div class="gamepad-panel">
+            <h2>Match Coordinator</h2>
+            
+            <div class="stat-box">
+                <div class="stat-row">
+                    <span>Active Warlord HP:</span>
+                    <span class="stat-value" id="hpVal">20 / 20</span>
+                </div>
+                <div class="stat-row">
+                    <span>Current Round Mana:</span>
+                    <span class="stat-value" id="manaVal">0 / 8</span>
+                </div>
+                <div class="stat-row">
+                    <span>Active Shield Card:</span>
+                    <span class="stat-value" id="shieldVal">None</span>
+                </div>
+            </div>
+
+            <div class="controls-group">
+                <label for="cardSelect">Deploy Card to Board Target:</label>
+                <select id="cardSelect">
+                    <option value="none">-- Select Card to Play --</option>
+                </select>
+            </div>
+
+            <div class="controls-group">
+                <label for="dartThrow">Simulate Dart Segment Hit:</label>
+                <select id="dartThrow">
+                    <option value="bull">Bullseye (Inner/Outer)</option>
+                    <option value="quadro">Quadro Ring</option>
+                    <option value="treble">Triple Ring (10-20)</option>
+                    <option value="double20">Double 20 (D20)</option>
+                    <option value="double">Double Ring (Any)</option>
+                    <option value="outer">Outer Single (1-10)</option>
+                    <option value="treble_seq">Treble Sequence (6, 13, 11)</option>
+                    <option value="miss">Miss / Wire</option>
+                </select>
+            </div>
+
+            <button onclick="playTurn()">Execute Dart Throw</button>
+            <button class="secondary" onclick="resetMatch()">Reset Match State</button>
+
+            <label style="margin-top: 15px;">Match Action Log:</label>
+            <div class="log-box" id="logBox">
+                [System] Match initialized. Warlord HP set to 20. Ready for opening throws...
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const cardsData = [
+            { name: "The White Wizard", type: "Warlord", cost: "0 Mana", target: "Bullseye (Inner/Outer)", effect: "Primary life total (20 HP). Inner bullstrike heals 3 HP or blocks incoming spells." },
+            { name: "Billy the Kid", type: "Character", cost: "4 Mana", target: "Quadro Ring (Any)", effect: "High-risk offensive character. Successful Quadro hit strips 1 card from opponent's hand." },
+            { name: "The Goblin Alchemist", type: "Minion", cost: "2 Mana", target: "Triple Ring (10-20)", effect: "Resource generator. Each triple hit grants +2 Mana crystals for next-turn spell casting." },
+            { name: "The Flaming Spittoon", type: "Artifact", cost: "3 Mana", target: "Double 20 (D20)", effect: "Deals 4 damage to enemy minions. Missing and hitting Single 20 inflicts 2 self-damage penalty." },
+            { name: "Calamity Jane's Hex", type: "Spell", cost: "3 Mana", target: "Outer Single (1-10)", effect: "Forces opponent to hit an even number on their next turn or forfeit their card draw phase." },
+            { name: "Sheriff's Deputy Golem", type: "Minion", cost: "3 Mana", target: "Double Ring (Any)", effect: "Defensive shield card. Absorbs 1 direct Warlord attack; requires double-ring hit to bypass." },
+            { name: "Hellhound Cerberus", type: "Beast Minion", cost: "5 Mana", target: "Treble 6, 13, 11", effect: "Multi-strike creature. Requires sequential hits across specific sectors to deal heavy 5-damage strike." },
+            { name: "Abyssal Dragon-Goat", type: "Legendary Beast", cost: "7 Mana", target: "Quadro Bull / Center", effect: "Board wipe boss card. Instantly destroys all active enemy minion cards upon successful impact." }
+        ];
+
+        let playerHP = 20;
+        let currentMana = 2;
+        let activeShield = "None";
+
+        function initApp() {
+            const grid = document.getElementById('cardGrid');
+            const select = document.getElementById('cardSelect');
+
+            cardsData.forEach(card => {
+                // Populate Card Library Grid
+                const cardEl = document.createElement('div');
+                cardEl.className = 'card';
+                cardEl.innerHTML = `
+                    <div>
+                        <div class="card-header">
+                            <span class="card-title">${card.name}</span>
+                            <span class="card-cost">${card.cost}</span>
+                        </div>
+                        <div class="card-details">
+                            <div><strong>Type:</strong> ${card.type}</div>
+                            <div><strong>Target:</strong> <span>${card.target}</span></div>
+                        </div>
+                    </div>
+                    <div class="card-effect">${card.effect}</div>
+                `;
+                grid.appendChild(cardEl);
+
+                // Populate Dropdown
+                if(card.type !== "Warlord") {
+                    const opt = document.createElement('option');
+                    opt.value = card.name;
+                    opt.textContent = `${card.name} (${card.cost})`;
+                    select.appendChild(opt);
+                }
+            });
+            updateStats();
+        }
+
+        function updateStats() {
+            document.getElementById('hpVal').textContent = `${playerHP} / 20`;
+            document.getElementById('manaVal').textContent = `${currentMana} / 8`;
+            document.getElementById('shieldVal').textContent = activeShield;
+        }
+
+        function logAction(message) {
+            const logBox = document.getElementById('logBox');
+            logBox.innerHTML += `> ${message}<br>`;
+            logBox.scrollTop = logBox.scrollHeight;
+        }
+
+        function playTurn() {
+            const selectedCard = document.getElementById('cardSelect').value;
+            const dartThrow = document.getElementById('dartThrow').value;
+
+            if(selectedCard === "none") {
+                logAction("Warning: Please select a card to deploy before throwing darts.");
+                return;
+            }
+
+            logAction(`Attempting to play [${selectedCard}] with dart throw: ${dartThrow}...`);
+
+            // Game logic simulation based on dart outcome
+            if(dartThrow === "miss") {
+                playerHP = Math.max(0, playerHP - 1);
+                logAction(`Missed target sector! Backfire penalty: -1 HP. Current HP: ${playerHP}`);
+            } else {
+                currentMana = Math.min(8, currentMana + 2);
+                logAction(`Successful hit! Card deployed. Mana gained (+2). Current Mana: ${currentMana}`);
+                
+                if(selectedCard === "Sheriff's Deputy Golem") {
+                    activeShield = "Active (Golem)";
+                } else if(selectedCard === "The Flaming Spittoon") {
+                    logAction("Spittoon triggered! 4 damage dealt to target minion zone.");
+                }
+            }
+
+            updateStats();
+
+            if(playerHP <= 0) {
+                logAction("GAME OVER: Warlord health depleted to 0.");
+                alert("Match Over! Warlord health reached zero.");
+            }
+        }
+
+        function resetMatch() {
+            playerHP = 20;
+            currentMana = 2;
+            activeShield = "None";
+            document.getElementById('logBox').innerHTML = "[System] Match reset. Warlord HP restored to 20.<br>";
+            updateStats();
+        }
+
+        window.onload = initApp;
+    </script>
+</body>
+</html>
