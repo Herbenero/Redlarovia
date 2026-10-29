@@ -264,12 +264,14 @@
                     </div>
 
                     <!-- Modifiers -->
-                    <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; margin-bottom: 8px;">
-                        <button class="modifier-btn" id="mod-inner" onclick="setModifier('inner')">Inner Single</button>
-                        <button class="modifier-btn" id="mod-outer" onclick="setModifier('outer')">Outer Single</button>
-                        <button class="modifier-btn" id="mod-double" onclick="setModifier('double')">Double (x2)</button>
-                        <button class="modifier-btn" id="mod-triple" onclick="setModifier('triple')">Triple (x3)</button>
-                    </div>
+                    <div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 5px; margin-bottom: 8px;">
+    <button class="modifier-btn" id="mod-inner" onclick="setModifier('inner')">Inner Single</button>
+    <button class="modifier-btn" id="mod-middle" onclick="setModifier('middle')">Inner Single</button>                    
+    <button class="modifier-btn" id="mod-outer" onclick="setModifier('outer')">Outer Single</button>
+    <button class="modifier-btn" id="mod-double" onclick="setModifier('double')">Double (x2)</button>
+    <button class="modifier-btn" id="mod-triple" onclick="setModifier('triple')">Triple (x3)</button>
+    <button class="modifier-btn" id="mod-quad" onclick="setModifier('quad')" style="background: #4a1525; border-color: var(--danger);">Quad (x4)</button>
+</div>
 
                     <!-- Numbers 1-20, Bull, Miss Keypad -->
                     <div class="keypad-grid" id="number-keypad">
@@ -326,6 +328,12 @@
             { name: "Monk", role: "Martial Artist", ability: "Turn total multiple of 10 grants +20 defense", img: "Monk.png" },
             { name: "Thief", role: "Pickpocket", ability: "Hitting triple 3 steals 10 health", img: "Thief.png" },
             { name: "Alchemist", role: "Potion Brewer", ability: "Turn missed dart into 20 points once", img: "Alchemist.png" }
+            { name: "Gideon the Sniper", role: "Long-Range Marksman", ability: "Hitting any Quad segment adds +15 damage", img: "Gideon.png" },
+{ name: "Vespera the Shadow Weaver", role: "Arcane Assassin", ability: "Landing 2+ Quads drains 15 HP and heals self", img: "Vespera.png" },
+{ name: "Brom the Ironclad", role: "Fortress Vanguard", ability: "Hitting a Quad grants a +25 defense shield", img: "Brom.png" },
+{ name: "Zephyr the Tempest", role: "Wind Channeler", ability: "Landing 3 Quads unleashes double damage", img: "Zephyr.png" },
+{ name: "Ignatius the Flamekeeper", role: "Pyromancer", ability: "Hitting a Quad deals +10 piercing burn damage", img: "Ignatius.png" },
+{ name: "Lyra the Starcaller", role: "Celestial Mystic", ability: "Hitting a Quad grants +10 health and damage reduction", img: "Lyra.png" }
         ];
 
         const medievalAiNames = [
@@ -769,6 +777,51 @@
                     targetP.defenseShield = 0;
                 }
             }
+            // Inside your shot-processing loop where you evaluate multiplier types:
+let quadCount = 0;
+shots.forEach((shot, idx) => {
+    let currentNum = shot.number;
+    let multType = shot.multiplier; // 'inner', 'outer', 'double', 'triple', 'quad'
+    let multVal = 1;
+
+    if (multType === 'double') multVal = 2;
+    else if (multType === 'triple') multVal = 3;
+    else if (multType === 'quad') {
+        multVal = 4;
+        quadCount++;
+    }
+    // ...
+});
+
+// Character Ability Triggers for Quads:
+if (quadCount > 0) {
+    if (activeP.character === "Gideon the Sniper") {
+        damageDealt += (quadCount * 15);
+        logger.innerHTML += `🎯 Gideon fires a sniper quad shot for +${quadCount * 15} bonus damage!<br>`;
+    }
+    if (activeP.character === "Vespera the Shadow Weaver" && quadCount >= 2) {
+        activeP.hp = Math.min(activeP.maxHp, activeP.hp + 15);
+        damageDealt += 15;
+        logger.innerHTML += `🌑 Vespera weaves shadow quads, draining 15 HP and healing self!<br>`;
+    }
+    if (activeP.character === "Brom the Ironclad") {
+        activeP.defenseShield += 25;
+        logger.innerHTML += `🛡️ Brom hits a quad, raising a heavy +25 defense shield!<br>`;
+    }
+    if (activeP.character === "Zephyr the Tempest" && quadCount === 3) {
+        damageDealt *= 2;
+        logger.innerHTML += `🌪️ Zephyr hits a triple-quad gale, doubling all damage dealt this turn!<br>`;
+    }
+    if (activeP.character === "Ignatius the Flamekeeper") {
+        damageDealt += 10;
+        logger.innerHTML += `🔥 Ignatius ignites a quad burn for +10 piercing fire damage!<br>`;
+    }
+    if (activeP.character === "Lyra the Starcaller") {
+        activeP.hp = Math.min(activeP.maxHp, activeP.hp + 10);
+        activeP.incomingDmgReduction += 5;
+        logger.innerHTML += `✨ Lyra aligns the stars with a quad, healing +10 HP and blessing shields!<br>`;
+    }
+}
 
             targetP.hp -= finalDmgToTarget;
             logger.innerHTML += `⚔️ ${activeP.name} deals <strong>${finalDmgToTarget}</strong> damage to ${targetP.name} (Score: ${totalTurnScore})! (${targetP.name} HP: ${Math.max(0, targetP.hp)})<br>`;
