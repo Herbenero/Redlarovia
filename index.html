@@ -197,8 +197,16 @@
         <!-- SETUP SCREEN -->
         <div id="screen-setup">
             <h2>Enter Adventurers</h2>
-            <p>Add human players (up to 20) and choose how many A.I. bots (40% accuracy) to invite:</p>
+            <p>Add human players (up to 20) and choose your board configuration & A.I. bots:</p>
             
+            <div style="background: #1e1813; padding: 12px; border-radius: 6px; border: 1px solid var(--text-muted); margin-bottom: 15px; text-align: center;">
+                <label for="board-type-select"><strong>🎯 Board Configuration:</strong></label>
+                <select id="board-type-select" onchange="updateSetupUI()">
+                    <option value="standard">Standard Board</option>
+                    <option value="quad">Quad Board (+ Middle & Quad segments)</option>
+                </select>
+            </div>
+
             <div style="text-align: center;">
                 <input type="text" id="player-input" placeholder="Player Name">
                 <button onclick="addPlayer()">Add Player</button>
@@ -263,15 +271,10 @@
                         <button onclick="undoLastDart()" style="background: var(--danger); font-size: 0.75rem; padding: 4px 10px; margin: 0;">↩️ Undo</button>
                     </div>
 
-                    <!-- Modifiers -->
-                    <div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 5px; margin-bottom: 8px;">
-    <button class="modifier-btn" id="mod-inner" onclick="setModifier('inner')">Inner Single</button>
-    <button class="modifier-btn" id="mod-middle" onclick="setModifier('middle')">Inner Single</button>                    
-    <button class="modifier-btn" id="mod-outer" onclick="setModifier('outer')">Outer Single</button>
-    <button class="modifier-btn" id="mod-double" onclick="setModifier('double')">Double (x2)</button>
-    <button class="modifier-btn" id="mod-triple" onclick="setModifier('triple')">Triple (x3)</button>
-    <button class="modifier-btn" id="mod-quad" onclick="setModifier('quad')" style="background: #4a1525; border-color: var(--danger);">Quad (x4)</button>
-</div>
+                    <!-- Modifiers Container -->
+                    <div id="modifiers-container" style="display: grid; gap: 5px; margin-bottom: 8px;">
+                        <!-- Dynamically populated based on board type -->
+                    </div>
 
                     <!-- Numbers 1-20, Bull, Miss Keypad -->
                     <div class="keypad-grid" id="number-keypad">
@@ -307,7 +310,7 @@
     </div>
 
     <script>
-        const masterCharacterRoster = [
+        const standardCharacterRoster = [
             { name: "King Redlar", role: "Sovereign Tank", ability: "+50 starting health", bonusHp: 50, img: "Redlar.png" },
             { name: "Queen B", role: "Battle Monarch", ability: "+10 damage if hitting doubles", img: "QueenB.png" },
             { name: "Pope Asshole", role: "High Cleric", ability: "+5 HP regeneration per round", img: "Pope.png" },
@@ -328,12 +331,15 @@
             { name: "Monk", role: "Martial Artist", ability: "Turn total multiple of 10 grants +20 defense", img: "Monk.png" },
             { name: "Thief", role: "Pickpocket", ability: "Hitting triple 3 steals 10 health", img: "Thief.png" },
             { name: "Alchemist", role: "Potion Brewer", ability: "Turn missed dart into 20 points once", img: "Alchemist.png" }
+        ];
+
+        const quadExclusiveRoster = [
             { name: "Gideon the Sniper", role: "Long-Range Marksman", ability: "Hitting any Quad segment adds +15 damage", img: "Gideon.png" },
-{ name: "Vespera the Shadow Weaver", role: "Arcane Assassin", ability: "Landing 2+ Quads drains 15 HP and heals self", img: "Vespera.png" },
-{ name: "Brom the Ironclad", role: "Fortress Vanguard", ability: "Hitting a Quad grants a +25 defense shield", img: "Brom.png" },
-{ name: "Zephyr the Tempest", role: "Wind Channeler", ability: "Landing 3 Quads unleashes double damage", img: "Zephyr.png" },
-{ name: "Ignatius the Flamekeeper", role: "Pyromancer", ability: "Hitting a Quad deals +10 piercing burn damage", img: "Ignatius.png" },
-{ name: "Lyra the Starcaller", role: "Celestial Mystic", ability: "Hitting a Quad grants +10 health and damage reduction", img: "Lyra.png" }
+            { name: "Vespera the Shadow Weaver", role: "Arcane Assassin", ability: "Landing 2+ Quads drains 15 HP and heals self", img: "Vespera.png" },
+            { name: "Brom the Ironclad", role: "Fortress Vanguard", ability: "Hitting a Quad grants a +25 defense shield", img: "Brom.png" },
+            { name: "Zephyr the Tempest", role: "Wind Channeler", ability: "Landing 3 Quads unleashes double damage", img: "Zephyr.png" },
+            { name: "Ignatius the Flamekeeper", role: "Pyromancer", ability: "Hitting a Quad deals +10 piercing burn damage", img: "Ignatius.png" },
+            { name: "Lyra the Starcaller", role: "Celestial Mystic", ability: "Hitting a Quad grants +10 health and damage reduction", img: "Lyra.png" }
         ];
 
         const medievalAiNames = [
@@ -354,7 +360,8 @@
 
         // Active Turn Input State
         let currentDartsLogged = [];
-        let selectedModifier = "inner"; // Default modifier
+        let selectedModifier = "inner";
+        let isQuadBoard = false;
 
         function shuffleArray(array) {
             let currentIndex = array.length, randomIndex;
@@ -364,6 +371,11 @@
                 [array[currentIndex], array[randomIndex]] = [array[randomIndex], array[currentIndex]];
             }
             return array;
+        }
+
+        function updateSetupUI() {
+            isQuadBoard = document.getElementById("board-type-select").value === "quad";
+            updatePlayerListUI();
         }
 
         function addPlayer() {
@@ -426,11 +438,17 @@
                 finalLobby.push(`🤖 ${botName}`);
             }
 
-            let shuffledRoster = shuffleArray([...masterCharacterRoster]);
+            // Build roster pool based on board type selection
+            let activeRosterPool = [...standardCharacterRoster];
+            if (isQuadBoard) {
+                activeRosterPool = activeRosterPool.concat(quadExclusiveRoster);
+            }
+
+            let shuffledRoster = shuffleArray(activeRosterPool);
             let availableNumbers = shuffleArray([...Array(20).keys()].map(x => x + 1)); 
 
             activePlayersState = finalLobby.map((name, index) => {
-                let char = shuffledRoster[index];
+                let char = shuffledRoster[index % shuffledRoster.length];
                 let baseHp = 300 + (char.bonusHp || 0);
                 let isAi = name.includes("🤖");
                 return {
@@ -438,7 +456,7 @@
                     character: char.name,
                     role: char.role,
                     ability: char.ability,
-                    targetNumber: availableNumbers[index],
+                    targetNumber: availableNumbers[index % availableNumbers.length],
                     hp: baseHp,
                     maxHp: baseHp,
                     isEliminated: false,
@@ -468,8 +486,34 @@
         function startConquest() {
             document.getElementById("screen-draft").classList.add("hidden");
             document.getElementById("screen-conquest").classList.remove("hidden");
+            buildModifiersUI();
             buildNumberKeypad();
             updateConquestUI();
+        }
+
+        function buildModifiersUI() {
+            const container = document.getElementById("modifiers-container");
+            let html = "";
+            if (isQuadBoard) {
+                container.style.gridTemplateColumns = "repeat(6, 1fr)";
+                html = `
+                    <button class="modifier-btn" id="mod-inner" onclick="setModifier('inner')">Inner Single</button>
+                    <button class="modifier-btn" id="mod-middle" onclick="setModifier('middle')">Middle</button>
+                    <button class="modifier-btn" id="mod-outer" onclick="setModifier('outer')">Outer Single</button>
+                    <button class="modifier-btn" id="mod-double" onclick="setModifier('double')">Double (x2)</button>
+                    <button class="modifier-btn" id="mod-triple" onclick="setModifier('triple')">Triple (x3)</button>
+                    <button class="modifier-btn" id="mod-quad" onclick="setModifier('quad')" style="background: #4a1525; border-color: var(--danger);">Quad (x4)</button>
+                `;
+            } else {
+                container.style.gridTemplateColumns = "repeat(4, 1fr)";
+                html = `
+                    <button class="modifier-btn" id="mod-inner" onclick="setModifier('inner')">Inner Single</button>
+                    <button class="modifier-btn" id="mod-outer" onclick="setModifier('outer')">Outer Single</button>
+                    <button class="modifier-btn" id="mod-double" onclick="setModifier('double')">Double (x2)</button>
+                    <button class="modifier-btn" id="mod-triple" onclick="setModifier('triple')">Triple (x3)</button>
+                `;
+            }
+            container.innerHTML = html;
         }
 
         function buildNumberKeypad() {
@@ -487,14 +531,14 @@
         function setModifier(mod) {
             selectedModifier = mod;
             document.querySelectorAll(".modifier-btn").forEach(btn => btn.classList.remove("active"));
-            document.getElementById(`mod-${mod}`).classList.add("active");
+            let activeBtn = document.getElementById(`mod-${mod}`);
+            if (activeBtn) activeBtn.classList.add("active");
         }
 
         function logDartNumber(num) {
             if (currentDartsLogged.length >= 3) return;
 
             let mod = selectedModifier;
-            // Bulls and Misses don't use inner/outer ring multipliers in standard darts
             if (num === 25 || num === 50 || num === 0) {
                 mod = 'outer';
             }
@@ -594,9 +638,8 @@
                 </tr>
             `).join('');
 
-            // Reset turn input state
             currentDartsLogged = [];
-            setModifier('inner'); // Default modifier to inner
+            setModifier('inner');
             updateDartPreviewUI();
 
             let keypadContainer = document.querySelector(".dart-keypad");
@@ -638,17 +681,24 @@
             let hitTriple = false;
             let missCount = 0;
             let innerSingleCount = 0;
+            let middleSingleCount = 0;
             let outerSingleCount = 0;
+            let quadCount = 0;
             let numbersHit = [];
 
             shots.forEach((shot, idx) => {
                 let currentNum = shot.number;
-                let multType = shot.multiplier; // 'outer', 'inner', 'double', 'triple'
+                let multType = shot.multiplier; // 'inner', 'middle', 'outer', 'double', 'triple', 'quad'
                 let multVal = 1;
 
                 if (multType === 'double') multVal = 2;
                 else if (multType === 'triple') multVal = 3;
-                else multVal = 1; 
+                else if (multType === 'quad') {
+                    multVal = 4;
+                    quadCount++;
+                } else {
+                    multVal = 1; 
+                }
 
                 if (currentNum === 0) {
                     if (activeP.character === "The Rogue" && !activeP.abilityUsed) {
@@ -675,6 +725,7 @@
                 }
 
                 if (multType === 'inner') innerSingleCount++;
+                if (multType === 'middle') middleSingleCount++;
                 if (multType === 'outer') outerSingleCount++;
             });
 
@@ -695,6 +746,7 @@
                 logger.innerHTML += `🎯 <strong>${activeP.name}</strong> struck sacred target #${activeP.targetNumber} ${hitTargetCount}x! (+${hitTargetCount * 10} dmg)<br>`;
             }
 
+            // Standard Character Passives
             if (activeP.character === "Queen B" && hitDouble) {
                 damageDealt += 15;
                 logger.innerHTML += `👑 Queen B Royal Decree grants +15 bonus double damage!<br>`;
@@ -703,9 +755,10 @@
                 activeP.hp = Math.min(activeP.maxHp, activeP.hp + 10);
                 logger.innerHTML += `💀 Necromancer drains life force from a triple hit (+10 HP)!<br>`;
             }
-            if (activeP.character === "Wizard" && innerSingleCount > 0) {
-                damageDealt += (innerSingleCount * 15);
-                logger.innerHTML += `⚡ Wizard channels inner elemental burn (+${innerSingleCount * 15} damage)!<br>`;
+            if (activeP.character === "Wizard" && (innerSingleCount > 0 || middleSingleCount > 0)) {
+                let wizardHits = innerSingleCount + middleSingleCount;
+                damageDealt += (wizardHits * 15);
+                logger.innerHTML += `⚡ Wizard channels inner/middle elemental burn (+${wizardHits * 15} damage)!<br>`;
             }
             if (activeP.character === "Bulwark the Berserker" && outerSingleCount === 3) {
                 damageDealt *= 2;
@@ -749,6 +802,36 @@
                 logger.innerHTML += `🧘 Monk achieves perfect balance (Turn total multiple of 10) granting +20 defense shield!<br>`;
             }
 
+            // Quad Board Exclusive Abilities Triggers
+            if (quadCount > 0) {
+                if (activeP.character === "Gideon the Sniper") {
+                    damageDealt += (quadCount * 15);
+                    logger.innerHTML += `🎯 Gideon fires a sniper quad shot for +${quadCount * 15} bonus damage!<br>`;
+                }
+                if (activeP.character === "Vespera the Shadow Weaver" && quadCount >= 2) {
+                    activeP.hp = Math.min(activeP.maxHp, activeP.hp + 15);
+                    damageDealt += 15;
+                    logger.innerHTML += `🌑 Vespera weaves shadow quads, draining 15 HP and healing self!<br>`;
+                }
+                if (activeP.character === "Brom the Ironclad") {
+                    activeP.defenseShield += 25;
+                    logger.innerHTML += `🛡️ Brom hits a quad, raising a heavy +25 defense shield!<br>`;
+                }
+                if (activeP.character === "Zephyr the Tempest" && quadCount === 3) {
+                    damageDealt *= 2;
+                    logger.innerHTML += `🌪️ Zephyr hits a triple-quad gale, doubling all damage dealt this turn!<br>`;
+                }
+                if (activeP.character === "Ignatius the Flamekeeper") {
+                    damageDealt += 10;
+                    logger.innerHTML += `🔥 Ignatius ignites a quad burn for +10 piercing fire damage!<br>`;
+                }
+                if (activeP.character === "Lyra the Starcaller") {
+                    activeP.hp = Math.min(activeP.maxHp, activeP.hp + 10);
+                    activeP.incomingDmgReduction += 5;
+                    logger.innerHTML += `✨ Lyra aligns the stars with a quad, healing +10 HP and blessing shields!<br>`;
+                }
+            }
+
             if (currentRound >= 5) damageDealt *= 2; 
 
             let selectedTargetIndex = parseInt(document.getElementById("target-player-select").value);
@@ -777,51 +860,6 @@
                     targetP.defenseShield = 0;
                 }
             }
-            // Inside your shot-processing loop where you evaluate multiplier types:
-let quadCount = 0;
-shots.forEach((shot, idx) => {
-    let currentNum = shot.number;
-    let multType = shot.multiplier; // 'inner', 'outer', 'double', 'triple', 'quad'
-    let multVal = 1;
-
-    if (multType === 'double') multVal = 2;
-    else if (multType === 'triple') multVal = 3;
-    else if (multType === 'quad') {
-        multVal = 4;
-        quadCount++;
-    }
-    // ...
-});
-
-// Character Ability Triggers for Quads:
-if (quadCount > 0) {
-    if (activeP.character === "Gideon the Sniper") {
-        damageDealt += (quadCount * 15);
-        logger.innerHTML += `🎯 Gideon fires a sniper quad shot for +${quadCount * 15} bonus damage!<br>`;
-    }
-    if (activeP.character === "Vespera the Shadow Weaver" && quadCount >= 2) {
-        activeP.hp = Math.min(activeP.maxHp, activeP.hp + 15);
-        damageDealt += 15;
-        logger.innerHTML += `🌑 Vespera weaves shadow quads, draining 15 HP and healing self!<br>`;
-    }
-    if (activeP.character === "Brom the Ironclad") {
-        activeP.defenseShield += 25;
-        logger.innerHTML += `🛡️ Brom hits a quad, raising a heavy +25 defense shield!<br>`;
-    }
-    if (activeP.character === "Zephyr the Tempest" && quadCount === 3) {
-        damageDealt *= 2;
-        logger.innerHTML += `🌪️ Zephyr hits a triple-quad gale, doubling all damage dealt this turn!<br>`;
-    }
-    if (activeP.character === "Ignatius the Flamekeeper") {
-        damageDealt += 10;
-        logger.innerHTML += `🔥 Ignatius ignites a quad burn for +10 piercing fire damage!<br>`;
-    }
-    if (activeP.character === "Lyra the Starcaller") {
-        activeP.hp = Math.min(activeP.maxHp, activeP.hp + 10);
-        activeP.incomingDmgReduction += 5;
-        logger.innerHTML += `✨ Lyra aligns the stars with a quad, healing +10 HP and blessing shields!<br>`;
-    }
-}
 
             targetP.hp -= finalDmgToTarget;
             logger.innerHTML += `⚔️ ${activeP.name} deals <strong>${finalDmgToTarget}</strong> damage to ${targetP.name} (Score: ${totalTurnScore})! (${targetP.name} HP: ${Math.max(0, targetP.hp)})<br>`;
@@ -869,7 +907,7 @@ if (quadCount > 0) {
         }
 
         function openDamageGuide() {
-            alert("📜 REDLAROVIA DAMAGE GUIDE:\n\n1. BASE DAMAGE: Your 3-dart total score is divided by 3.\n\n2. TARGET BONUS: Hitting your character's sacred Target Number adds +10 flat damage per hit!\n\n3. RINGS: Click Inner Single, Outer Single, Double, or Triple before selecting a number. Modifiers auto-default back to Inner Single after every throw!\n\n4. REALM CRISIS: From Round 5 onwards, all final damage values are DOUBLED!");
+            alert("📜 REDLAROVIA DAMAGE GUIDE:\n\n1. BASE DAMAGE: Your 3-dart total score is divided by 3.\n\n2. TARGET BONUS: Hitting your character's sacred Target Number adds +10 flat damage per hit!\n\n3. RINGS: Click Inner Single, Middle, Outer Single, Double, Triple, or Quad before selecting a number. Modifiers auto-default back to Inner Single after every throw!\n\n4. REALM CRISIS: From Round 5 onwards, all final damage values are DOUBLED!");
         }
 
         function triggerFinale(survivors) {
