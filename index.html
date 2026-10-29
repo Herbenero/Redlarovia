@@ -161,7 +161,6 @@
             
             <div id="player-list-display" class="player-setup-list"></div>
 
-            <!-- A.I. BOT SELECTOR CONTROLS -->
             <div id="ai-controls" class="hidden" style="background: #1e1813; padding: 12px; border-radius: 6px; border: 1px solid var(--text-muted); margin-top: 15px; text-align: center;">
                 <label for="ai-count-select"><strong>🤖 A.I. Bots to Add:</strong></label>
                 <select id="ai-count-select" onchange="updateStartButtonText()"></select>
@@ -202,6 +201,13 @@
 
             <div style="background: #231b14; padding: 15px; border-radius: 6px; border: 1px solid var(--accent-gold);">
                 <h3 id="current-turn-heading" style="margin-top: 0;"></h3>
+                
+                <!-- Manual Target Selection Dropdown -->
+                <div style="background: #1e1813; padding: 10px; margin: 10px 0; border-radius: 4px; border: 1px solid #3b3026;">
+                    <label for="target-player-select"><strong>⚔️ Choose Target Opponent:</strong></label>
+                    <select id="target-player-select" style="width: 100%; margin-top: 5px;"></select>
+                </div>
+
                 <p>Log your 3 darts thrown this turn:</p>
                 
                 <!-- Dart 1 -->
@@ -342,7 +348,6 @@
                 aiControls.classList.remove("hidden");
                 startBtn.classList.remove("hidden");
                 
-                // Populate AI dropdown options based on available open slots (up to 20 total)
                 let maxPossibleBots = 20 - playersInputNames.length;
                 let aiSelect = document.getElementById("ai-count-select");
                 let currentSelected = parseInt(aiSelect.value) || 0;
@@ -372,7 +377,6 @@
             let aiCount = parseInt(document.getElementById("ai-count-select").value) || 0;
             let finalLobby = [...playersInputNames];
             
-            // Add selected number of AI bots
             for(let i = 1; i <= aiCount; i++) {
                 finalLobby.push(`🤖 A.I. Bot ${i}`);
             }
@@ -440,6 +444,15 @@
             let activeP = activePlayersState[activeTurnIndex];
             document.getElementById("current-turn-heading").innerText = `${activeP.name}'s Turn (${activeP.character} - Target: #${activeP.targetNumber})`;
 
+            // Populate target dropdown with active opponents
+            let targetSelect = document.getElementById("target-player-select");
+            targetSelect.innerHTML = "";
+            activePlayersState.forEach((p, idx) => {
+                if (!p.isEliminated && idx !== activeTurnIndex) {
+                    targetSelect.innerHTML += `<option value="${idx}">${p.name} (${p.character} - ${p.hp} HP)</option>`;
+                }
+            });
+
             const tbody = document.getElementById("scoreboard-body");
             tbody.innerHTML = activePlayersState.map((p, idx) => `
                 <tr ${p.isEliminated ? 'style="opacity: 0.4; text-decoration: line-through;"' : ''}>
@@ -451,11 +464,24 @@
             `).join('');
 
             let throwControls = document.querySelectorAll(".dart-throw-group select");
+            let targetControl = document.getElementById("target-player-select");
+            
             if (activeP.isAi) {
                 throwControls.forEach(el => el.disabled = true);
+                targetControl.disabled = true;
+                
+                // AI picks a random alive target opponent
+                let aliveIndices = [];
+                activePlayersState.forEach((p, idx) => {
+                    if (!p.isEliminated && idx !== activeTurnIndex) aliveIndices.push(idx);
+                });
+                let randomTargetIdx = aliveIndices[Math.floor(Math.random() * aliveIndices.length)];
+                targetControl.value = randomTargetIdx;
+
                 setTimeout(() => executeAiTurn(activeP), 1000);
             } else {
                 throwControls.forEach(el => el.disabled = false);
+                targetControl.disabled = false;
             }
         }
 
@@ -494,12 +520,18 @@
 
             if (currentRound >= 5) damageDealt *= 2; 
 
-            let targetIndex = (activeTurnIndex + 1) % activePlayersState.length;
-            while(activePlayersState[targetIndex].isEliminated && targetIndex !== activeTurnIndex) {
-                targetIndex = (targetIndex + 1) % activePlayersState.length;
+            // Read chosen manual target from dropdown
+            let selectedTargetIndex = parseInt(document.getElementById("target-player-select").value);
+            let targetP = activePlayersState[selectedTargetIndex];
+
+            if (!targetP || targetP.isEliminated) {
+                let targetIndex = (activeTurnIndex + 1) % activePlayersState.length;
+                while(activePlayersState[targetIndex].isEliminated && targetIndex !== activeTurnIndex) {
+                    targetIndex = (targetIndex + 1) % activePlayersState.length;
+                }
+                targetP = activePlayersState[targetIndex];
             }
 
-            let targetP = activePlayersState[targetIndex];
             targetP.hp -= damageDealt;
             logger.innerHTML += `⚔️ ${activeP.name} deals <strong>${damageDealt}</strong> damage to ${targetP.name} (Score: ${totalTurnScore})! (${targetP.name} HP: ${Math.max(0, targetP.hp)})<br>`;
 
