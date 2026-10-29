@@ -228,9 +228,10 @@
                 <div class="dart-throw-group">
                     Dart 1: 
                     <select id="d1-multiplier">
-                        <option value="1">Single</option>
-                        <option value="2">Double (x2)</option>
-                        <option value="3">Triple (x3)</option>
+                        <option value="outer">Outer Single (1x)</option>
+                        <option value="inner">Inner Single (1x)</option>
+                        <option value="double">Double (x2)</option>
+                        <option value="triple">Triple (x3)</option>
                     </select>
                     <select id="d1-number">
                         <option value="0">Miss / 0</option>
@@ -246,9 +247,10 @@
                 <div class="dart-throw-group">
                     Dart 2: 
                     <select id="d2-multiplier">
-                        <option value="1">Single</option>
-                        <option value="2">Double (x2)</option>
-                        <option value="3">Triple (x3)</option>
+                        <option value="outer">Outer Single (1x)</option>
+                        <option value="inner">Inner Single (1x)</option>
+                        <option value="double">Double (x2)</option>
+                        <option value="triple">Triple (x3)</option>
                     </select>
                     <select id="d2-number">
                         <option value="0">Miss / 0</option>
@@ -264,9 +266,10 @@
                 <div class="dart-throw-group">
                     Dart 3: 
                     <select id="d3-multiplier">
-                        <option value="1">Single</option>
-                        <option value="2">Double (x2)</option>
-                        <option value="3">Triple (x3)</option>
+                        <option value="outer">Outer Single (1x)</option>
+                        <option value="inner">Inner Single (1x)</option>
+                        <option value="double">Double (x2)</option>
+                        <option value="triple">Triple (x3)</option>
                     </select>
                     <select id="d3-number">
                         <option value="0">Miss / 0</option>
@@ -299,27 +302,27 @@
 
     <script>
         const masterCharacterRoster = [
-    { name: "King Redlar", role: "Sovereign Tank", ability: "+50 starting health", bonusHp: 50, img: "Redlar.png" },
-    { name: "Queen B", role: "Battle Monarch", ability: "+10 damage if hitting doubles", img: "QueenB.png" },
-    { name: "Pope Asshole", role: "High Cleric", ability: "+5 HP regeneration per round", img: "Pope.png" },
-    { name: "The Rogue", role: "Cutthroat", ability: "Rethrow one missed dart per game", img: "Rogue.png" },
-    { name: "Ranger", role: "Precision Tracker", ability: "Miss board once = 1.5x damage on rest", img: "Ranger.png" },
-    { name: "Warlock", role: "Pact Magic User", ability: "Sacrifice 20 HP to deal 25 direct damage", img: "Warlock.png" },
-    { name: "Bulwark the Berserker", role: "Frenzied Marauder", ability: "All 3 outer singles = double damage", img: "Berserker.png" },
-    { name: "Necromancer", role: "Dark Sorcerer", ability: "Steals 10 HP when hitting triples", img: "Necromancer.png" },
-    { name: "Jester", role: "Wildcard Trickster", ability: "Hitting 1 reverses turn order", img: "Jester.png" },
-    { name: "Dwarf", role: "Mountain Fighter", ability: "Numbers 1-7 grant +5 bonus damage", img: "Dwarf.png" },
-    { name: "Assassin", role: "Shadow Stalker", ability: "Final dart Bullseye bypasses defense", img: "Assassin.png" },
-    { name: "Knight", role: "Heavy Armored Guard", ability: "Takes 5 less damage from all attacks", img: "Knight.png" },
-    { name: "Wizard", role: "Elementalist", ability: "Inner single ring adds +15 magical burn", img: "Wizard.png" },
-    { name: "Paladin", role: "Holy Crusader", ability: "Hitting a double reduces incoming damage", img: "Paladin.png" },
-    { name: "Druid", role: "Nature Shaman", ability: "Score 10, 11, and 12 to heal 30 health", img: "Druid.png" },
-    { name: "Barbarian", role: "Rage Warrior", ability: "Below 100 HP, single hits count as double", img: "Barbarian.png" },
-    { name: "Bard", role: "Minstrel", ability: "Generates +5 passive health at start of turn", img: "Bard.png" },
-    { name: "Monk", role: "Martial Artist", ability: "Turn total multiple of 10 grants +20 defense", img: "Monk.png" },
-    { name: "Thief", role: "Pickpocket", ability: "Hitting triple 3 steals 10 health", img: "Thief.png" },
-    { name: "Alchemist", role: "Potion Brewer", ability: "Turn missed dart into 20 points once", img: "Alchemist.png" }
-];
+            { name: "King Redlar", role: "Sovereign Tank", ability: "+50 starting health", bonusHp: 50, img: "Redlar.png" },
+            { name: "Queen B", role: "Battle Monarch", ability: "+10 damage if hitting doubles", img: "QueenB.png" },
+            { name: "Pope Asshole", role: "High Cleric", ability: "+5 HP regeneration per round", img: "Pope.png" },
+            { name: "The Rogue", role: "Cutthroat", ability: "Rethrow one missed dart per game", img: "Rogue.png" },
+            { name: "Ranger", role: "Precision Tracker", ability: "Miss board once = 1.5x damage on rest", img: "Ranger.png" },
+            { name: "Warlock", role: "Pact Magic User", ability: "Sacrifice 20 HP to deal 25 direct damage", img: "Warlock.png" },
+            { name: "Bulwark the Berserker", role: "Frenzied Marauder", ability: "All 3 outer singles = double damage", img: "Berserker.png" },
+            { name: "Necromancer", role: "Dark Sorcerer", ability: "Steals 10 HP when hitting triples", img: "Necromancer.png" },
+            { name: "Jester", role: "Wildcard Trickster", ability: "Hitting 1 reverses turn order", img: "Jester.png" },
+            { name: "Dwarf", role: "Mountain Fighter", ability: "Numbers 1-7 grant +5 bonus damage", img: "Dwarf.png" },
+            { name: "Assassin", role: "Shadow Stalker", ability: "Final dart Bullseye bypasses defense", img: "Assassin.png" },
+            { name: "Knight", role: "Heavy Armored Guard", ability: "Takes 5 less damage from all attacks", img: "Knight.png" },
+            { name: "Wizard", role: "Elementalist", ability: "Inner single ring adds +15 magical burn", img: "Wizard.png" },
+            { name: "Paladin", role: "Holy Crusader", ability: "Hitting a double reduces incoming damage", img: "Paladin.png" },
+            { name: "Druid", role: "Nature Shaman", ability: "Score 10, 11, and 12 to heal 30 health", img: "Druid.png" },
+            { name: "Barbarian", role: "Rage Warrior", ability: "Below 100 HP, single hits count as double", img: "Barbarian.png" },
+            { name: "Bard", role: "Minstrel", ability: "Generates +5 passive health at start of turn", img: "Bard.png" },
+            { name: "Monk", role: "Martial Artist", ability: "Turn total multiple of 10 grants +20 defense", img: "Monk.png" },
+            { name: "Thief", role: "Pickpocket", ability: "Hitting triple 3 steals 10 health", img: "Thief.png" },
+            { name: "Alchemist", role: "Potion Brewer", ability: "Turn missed dart into 20 points once", img: "Alchemist.png" }
+        ];
 
         const medievalAiNames = [
             "Sir Bot-A-Lot", "Erowyn the Greybot", "Gears-A-Lot", "Lady Circuit", 
@@ -427,7 +430,8 @@
                     accuracy: isAi ? 0.40 : 1.0,
                     abilityUsed: false,
                     defenseShield: 0,
-                    incomingDmgReduction: 0
+                    incomingDmgReduction: 0,
+                    img: char.img
                 };
             });
 
@@ -540,20 +544,26 @@
             let hitTriple = false;
             let missCount = 0;
             let innerSingleCount = 0;
+            let outerSingleCount = 0;
             let numbersHit = [];
 
             shots.forEach((shot, idx) => {
                 let currentNum = shot.number;
-                let currentMult = shot.multiplier;
+                let multType = shot.multiplier; // 'outer', 'inner', 'double', 'triple'
+                let multVal = 1;
+
+                if (multType === 'double') multVal = 2;
+                else if (multType === 'triple') multVal = 3;
+                else multVal = 1; // outer or inner single are both 1x value
 
                 // Strega Rogue & Alchemist ability overrides for misses (0)
                 if (currentNum === 0) {
-                    if (activeP.character === "Strega the Rogue" && !activeP.abilityUsed) {
-                        currentNum = 10; currentMult = 1;
+                    if (activeP.character === "The Rogue" && !activeP.abilityUsed) {
+                        currentNum = 10; multType = 'outer'; multVal = 1;
                         activeP.abilityUsed = true;
-                        logger.innerHTML += `🗡️ Strega rethrows a missed dart for a clean hit (+10 pts)!<br>`;
+                        logger.innerHTML += `🗡️ Rogue rethrows a missed dart for a clean hit (+10 pts)!<br>`;
                     } else if (activeP.character === "Alchemist" && !activeP.abilityUsed) {
-                        currentNum = 20; currentMult = 1;
+                        currentNum = 20; multType = 'outer'; multVal = 1;
                         activeP.abilityUsed = true;
                         logger.innerHTML += `🧪 Alchemist brews a potion to turn a miss into 20 points!<br>`;
                     } else {
@@ -561,25 +571,23 @@
                     }
                 }
 
-                let shotPoints = currentNum * currentMult;
+                let shotPoints = currentNum * multVal;
                 totalTurnScore += shotPoints;
                 numbersHit.push(currentNum);
 
                 if (currentNum === activeP.targetNumber) {
                     hitTargetCount++;
-                    if (currentMult === 2) hitDouble = true;
-                    if (currentMult === 3) hitTriple = true;
+                    if (multType === 'double') hitDouble = true;
+                    if (multType === 'triple') hitTriple = true;
                 }
 
-                // Wizard inner single check (simulated as single numbers 10-20)
-                if (activeP.character === "Wizard" && currentMult === 1 && currentNum >= 10 && currentNum <= 20) {
-                    innerSingleCount++;
-                }
+                if (multType === 'inner') innerSingleCount++;
+                if (multType === 'outer') outerSingleCount++;
             });
 
             // Barbarian Rage (Below 100 HP, singles count as double)
             if (activeP.character === "Barbarian" && activeP.hp < 100) {
-                totalTurnScore += totalTurnScore; // Double the raw score
+                totalTurnScore += totalTurnScore; 
                 logger.innerHTML += `🔥 Barbarian Rage surges! Singles count as double score!<br>`;
             }
 
@@ -610,6 +618,11 @@
                 damageDealt += (innerSingleCount * 15);
                 logger.innerHTML += `⚡ Wizard channels inner elemental burn (+${innerSingleCount * 15} damage)!<br>`;
             }
+            if (activeP.character === "Bulwark the Berserker" && outerSingleCount === 3) {
+                damageDealt *= 2;
+                activeP.hp = Math.max(0, activeP.hp - 10);
+                logger.innerHTML += `🪓 Bulwark lands all 3 outer singles for double damage, but takes 10 self-exhaustion damage!<br>`;
+            }
             if (activeP.character === "Dwarf") {
                 let dwarfHits = numbersHit.filter(n => n >= 1 && n <= 7).length;
                 if (dwarfHits > 0) {
@@ -619,14 +632,11 @@
             }
             if (activeP.character === "Assassin") {
                 let lastDart = shots[2];
-                if (lastDart && (lastDart.number === 25 || lastDart.number === 50)) {
+                let lastNum = parseInt(document.getElementById("d3-number").value);
+                if (lastNum === 25 || lastNum === 50) {
                     damageDealt += 25;
                     logger.innerHTML += `🥷 Assassin lands a lethal Bullseye, bypassing defense for +25 piercing damage!<br>`;
                 }
-            }
-            if (activeP.character === "Thief" && hitTriple && activeP.targetNumber === 3) {
-                // Handled in target health reduction
-                logger.innerHTML += `💰 Thief pickspocketed extra gold from a Triple 3!<br>`;
             }
             if (activeP.character === "Warlock" && !activeP.abilityUsed) {
                 activeP.hp -= 20;
@@ -665,12 +675,11 @@
                 targetP = activePlayersState[targetIndex];
             }
 
-            // Apply target defenses / armor
             let finalDmgToTarget = damageDealt;
             if (targetP.character === "Knight") finalDmgToTarget = Math.max(0, finalDmgToTarget - 5);
             if (targetP.incomingDmgReduction > 0) {
                 finalDmgToTarget = Math.max(0, finalDmgToTarget - targetP.incomingDmgReduction);
-                targetP.incomingDmgReduction = 0; // consume barrier
+                targetP.incomingDmgReduction = 0; 
             }
             if (targetP.defenseShield > 0) {
                 if (targetP.defenseShield >= finalDmgToTarget) {
@@ -704,14 +713,14 @@
             let activeP = activePlayersState[activeTurnIndex];
             
             let shots = [
-                { multiplier: parseInt(document.getElementById("d1-multiplier").value), number: parseInt(document.getElementById("d1-number").value) },
-                { multiplier: parseInt(document.getElementById("d2-multiplier").value), number: parseInt(document.getElementById("d2-number").value) },
-                { multiplier: parseInt(document.getElementById("d3-multiplier").value), number: parseInt(document.getElementById("d3-number").value) }
+                { multiplier: document.getElementById("d1-multiplier").value, number: parseInt(document.getElementById("d1-number").value) },
+                { multiplier: document.getElementById("d2-multiplier").value, number: parseInt(document.getElementById("d2-number").value) },
+                { multiplier: document.getElementById("d3-multiplier").value, number: parseInt(document.getElementById("d3-number").value) }
             ];
 
-            document.getElementById("d1-multiplier").value = "1"; document.getElementById("d1-number").value = "0";
-            document.getElementById("d2-multiplier").value = "1"; document.getElementById("d2-number").value = "0";
-            document.getElementById("d3-multiplier").value = "1"; document.getElementById("d3-number").value = "0";
+            document.getElementById("d1-multiplier").value = "outer"; document.getElementById("d1-number").value = "0";
+            document.getElementById("d2-multiplier").value = "outer"; document.getElementById("d2-number").value = "0";
+            document.getElementById("d3-multiplier").value = "outer"; document.getElementById("d3-number").value = "0";
 
             processTurnShots(shots, activeP);
         }
@@ -720,40 +729,39 @@
             let shots = [];
             for(let i = 0; i < 3; i++) {
                 let isAccurate = Math.random() < aiPlayer.accuracy;
-                let mult = 1;
+                let multType = 'outer';
                 let num = 0;
 
                 if (isAccurate) {
                     num = aiPlayer.targetNumber;
-                    mult = Math.random() < 0.2 ? 2 : 1; 
+                    multType = Math.random() < 0.2 ? 'double' : 'outer'; 
                 } else {
                     num = Math.floor(Math.random() * 20) + 1; 
-                    mult = 1;
+                    multType = 'outer';
                 }
-                shots.push({ multiplier: mult, number: num });
+                shots.push({ multiplier: multType, number: num });
             }
 
             processTurnShots(shots, aiPlayer);
         }
 
         function openDamageGuide() {
-            alert("📜 REDLAROVIA DAMAGE GUIDE:\n\n1. BASE DAMAGE: Your 3-dart total score is divided by 3 (e.g., scoring 60 gives 20 base damage).\n\n2. TARGET BONUS: Hitting your character's sacred Target Number adds +10 flat damage per hit!\n\n3. ABILITIES: All 20 character abilities (Wizard burns, Assassin crits, Druid heals, Warlock sacrifices, etc.) are fully automated!\n\n4. REALM CRISIS: From Round 5 onwards, all final damage values are DOUBLED!");
+            alert("📜 REDLAROVIA DAMAGE GUIDE:\n\n1. BASE DAMAGE: Your 3-dart total score is divided by 3.\n\n2. TARGET BONUS: Hitting your character's sacred Target Number adds +10 flat damage per hit!\n\n3. RINGS: You can now choose between Inner Singles, Outer Singles, Doubles, and Triples to trigger specific class perks like the Wizard or Berserker!\n\n4. REALM CRISIS: From Round 5 onwards, all final damage values are DOUBLED!");
         }
 
-       function triggerFinale(survivors) {
-    document.getElementById("screen-conquest").classList.add("hidden");
-    document.getElementById("screen-finale").classList.remove("hidden");
+        function triggerFinale(survivors) {
+            document.getElementById("screen-conquest").classList.add("hidden");
+            document.getElementById("screen-finale").classList.remove("hidden");
 
-    let winner = survivors.length > 0 ? survivors[0] : activePlayersState[0];
-    
-    document.getElementById("finale-winner-banner").innerHTML = `
-        <div style="margin-bottom: 15px;">
-            <img src="${winner.img || 'Redlar.png'}" alt="${winner.character}" style="width: 120px; height: 120px; border-radius: 50%; border: 3px solid var(--accent-gold); object-fit: cover; box-shadow: 0 4px 10px rgba(0,0,0,0.8);">
-        </div>
-        🏆 <strong>${winner.name}</strong> playing as <strong>${winner.character}</strong> has conquered Redlarovia!<br>
-        <span style="color:var(--text-muted); font-size:1rem;">The realm is saved within the 20-30 minute prophecy.</span>
-    `;
-}
+            let winner = survivors.length > 0 ? survivors[0] : activePlayersState[0];
+            document.getElementById("finale-winner-banner").innerHTML = `
+                <div style="margin-bottom: 15px;">
+                    <img src="${winner.img || 'Redlar.png'}" alt="${winner.character}" style="width: 120px; height: 120px; border-radius: 50%; border: 3px solid var(--accent-gold); object-fit: cover; box-shadow: 0 4px 10px rgba(0,0,0,0.8);">
+                </div>
+                🏆 <strong>${winner.name}</strong> playing as <strong>${winner.character}</strong> has conquered Redlarovia!<br>
+                <span style="color:var(--text-muted); font-size:1rem;">The realm is saved within the 20-30 minute prophecy.</span>
+            `;
+        }
     </script>
 </body>
 </html>
