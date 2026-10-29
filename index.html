@@ -641,20 +641,23 @@
             setModifier('inner');
             updateDartPreviewUI();
 
-            // Jester Shifting Ability Rotation
-            if (activeP.character === "Jester") {
-                const jesterPowers = [
-                    { name: "🃏 Laughing Stock: Reverses turn order when hitting a 1.", effect: "reverse" },
-                    { name: "🎭 Fool's Gold: Scoring a 20 grants +10 bonus damage.", effect: "gold" },
-                    { name: "🃏 Sleight of Hand: Missed darts (0) automatically count as 5 points.", effect: "sleight" },
-                    { name: "🎭 Prankster's Grin: Healing +10 HP at the start of the turn.", effect: "heal" },
-                    { name: "🃏 Wildcard Madness: Doubles raw score if total score is odd.", effect: "madness" }
-                ];
-                let currentPower = jesterPowers[(currentRound - 1) % jesterPowers.length];
-                activeP.ability = currentPower.name;
-                activeP.jesterEffect = currentPower.effect;
-            }
-
+           // Jester Shifting Ability Rotation
+if (activeP.character === "Jester") {
+    const jesterPowers = [
+        { name: "🃏 Laughing Stock: Reverses turn order when hitting a 1.", effect: "reverse" },
+        { name: "🎭 Fool's Gold: Scoring a 20 grants +10 bonus damage.", effect: "gold" },
+        { name: "🃏 Sleight of Hand: Missed darts (0) automatically count as 5 points.", effect: "sleight" },
+        { name: "🎭 Prankster's Grin: Healing +10 HP at the start of the turn.", effect: "heal" },
+        { name: "🃏 Wildcard Madness: Doubles raw score if total score is odd.", effect: "madness" }
+    ];
+    let currentPower = jesterPowers[(currentRound - 1) % jesterPowers.length];
+    
+    // Update both his active effect and his displayed ability text
+    activeP.jesterEffect = currentPower.effect;
+    activeP.ability = currentPower.name; 
+}
+document.getElementById("current-turn-heading").innerText = `${activeP.name}'s Turn (${activeP.character} - Target: #${activeP.targetNumber})`;
+document.getElementById("current-turn-ability").innerHTML = `✨ <strong>Character Ability:</strong> ${activeP.ability}`;
             // Warlock On-Demand Ability Prompt (Human players only)
             if (activeP.character === "Warlock" && !activeP.abilityUsed && !activeP.isAi) {
                 let useWarlockAbility = confirm(`🔮 Dark Pact Ready, ${activeP.name}!\n\nDo you want to sacrifice 20 HP this turn to deal 25 direct damage?`);
