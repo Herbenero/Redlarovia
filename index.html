@@ -134,14 +134,6 @@
             font-weight: bold;
         }
 
-        .dart-throw-group {
-            background: #1e1813;
-            padding: 10px;
-            margin: 5px 0;
-            border-radius: 4px;
-            border: 1px solid #3b3026;
-        }
-
         .ability-box {
             background: #191410;
             border: 1px dashed var(--accent-gold);
@@ -151,6 +143,48 @@
             font-size: 0.9rem;
             color: var(--text-main);
             text-align: center;
+        }
+
+        .dart-keypad {
+            background: #1e1813;
+            padding: 15px;
+            border-radius: 6px;
+            border: 1px solid #3b3026;
+            margin-top: 10px;
+        }
+
+        .keypad-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 6px;
+            margin-top: 10px;
+        }
+
+        .modifier-btn {
+            background: #3b3026;
+            color: var(--text-main);
+            border: 1px solid var(--text-muted);
+            padding: 8px;
+            font-size: 0.85rem;
+        }
+
+        .modifier-btn.active {
+            background: var(--accent-gold);
+            color: var(--bg-color);
+            border-color: #fff;
+            font-weight: bold;
+        }
+
+        .number-btn {
+            background: #251f1a;
+            color: var(--text-main);
+            border: 1px solid #4a3d31;
+            padding: 10px;
+            font-size: 1rem;
+        }
+
+        .number-btn:hover {
+            background: #3b3026;
         }
     </style>
 </head>
@@ -222,67 +256,37 @@
                     <select id="target-player-select" style="width: 100%; margin-top: 5px;"></select>
                 </div>
 
-                <p>Log your 3 darts thrown this turn:</p>
-                
-                <!-- Dart 1 -->
-                <div class="dart-throw-group">
-                    Dart 1: 
-                    <select id="d1-multiplier">
-                        <option value="outer">Outer Single (1x)</option>
-                        <option value="inner">Inner Single (1x)</option>
-                        <option value="double">Double (x2)</option>
-                        <option value="triple">Triple (x3)</option>
-                    </select>
-                    <select id="d1-number">
-                        <option value="0">Miss / 0</option>
-                        <script>
-                            for(let i=1; i<=20; i++) document.write(`<option value="${i}">${i}</option>`);
-                        </script>
-                        <option value="25">Outer Bull (25)</option>
-                        <option value="50">Inner Bull (50)</option>
-                    </select>
+                <!-- Interactive Dart Entry Keypad -->
+                <div class="dart-keypad">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                        <span id="current-dart-label" style="color: var(--accent-gold); font-weight: bold;">Logging Dart 1 of 3</span>
+                        <button onclick="undoLastDart()" style="background: var(--danger); font-size: 0.75rem; padding: 4px 10px; margin: 0;">↩️ Undo</button>
+                    </div>
+
+                    <!-- Modifiers -->
+                    <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; margin-bottom: 8px;">
+                        <button class="modifier-btn" id="mod-inner" onclick="setModifier('inner')">Inner Single</button>
+                        <button class="modifier-btn" id="mod-outer" onclick="setModifier('outer')">Outer Single</button>
+                        <button class="modifier-btn" id="mod-double" onclick="setModifier('double')">Double (x2)</button>
+                        <button class="modifier-btn" id="mod-triple" onclick="setModifier('triple')">Triple (x3)</button>
+                    </div>
+
+                    <!-- Numbers 1-20, Bull, Miss Keypad -->
+                    <div class="keypad-grid" id="number-keypad">
+                        <!-- JS populated numbers -->
+                    </div>
                 </div>
 
-                <!-- Dart 2 -->
-                <div class="dart-throw-group">
-                    Dart 2: 
-                    <select id="d2-multiplier">
-                        <option value="outer">Outer Single (1x)</option>
-                        <option value="inner">Inner Single (1x)</option>
-                        <option value="double">Double (x2)</option>
-                        <option value="triple">Triple (x3)</option>
-                    </select>
-                    <select id="d2-number">
-                        <option value="0">Miss / 0</option>
-                        <script>
-                            for(let i=1; i<=20; i++) document.write(`<option value="${i}">${i}</option>`);
-                        </script>
-                        <option value="25">Outer Bull (25)</option>
-                        <option value="50">Inner Bull (50)</option>
-                    </select>
-                </div>
-
-                <!-- Dart 3 -->
-                <div class="dart-throw-group">
-                    Dart 3: 
-                    <select id="d3-multiplier">
-                        <option value="outer">Outer Single (1x)</option>
-                        <option value="inner">Inner Single (1x)</option>
-                        <option value="double">Double (x2)</option>
-                        <option value="triple">Triple (x3)</option>
-                    </select>
-                    <select id="d3-number">
-                        <option value="0">Miss / 0</option>
-                        <script>
-                            for(let i=1; i<=20; i++) document.write(`<option value="${i}">${i}</option>`);
-                        </script>
-                        <option value="25">Outer Bull (25)</option>
-                        <option value="50">Inner Bull (50)</option>
-                    </select>
+                <!-- Live Dart Preview Display -->
+                <div style="background: #161412; border: 1px solid var(--text-muted); padding: 10px; border-radius: 4px; margin-top: 15px; text-align: center;">
+                    <span style="font-size: 0.85rem; color: var(--text-muted);">Current Throws Logged:</span>
+                    <div id="darts-preview-display" style="font-weight: bold; color: var(--accent-gold); margin-top: 5px; font-size: 1.05rem;">
+                        Dart 1: - | Dart 2: - | Dart 3: -
+                    </div>
                 </div>
 
                 <div style="text-align: center; margin-top: 15px;">
-                    <button onclick="submitTurn()">Resolve Turn</button>
+                    <button id="resolve-turn-btn" onclick="submitTurn()" class="hidden" style="background: var(--success); color: white; padding: 12px 25px;">⚔️ Resolve Turn</button>
                 </div>
             </div>
 
@@ -339,6 +343,10 @@
         let activeTurnIndex = 0;
         let turnOrderReversed = false;
         const MAX_ROUNDS = 7; 
+
+        // Active Turn Input State
+        let currentDartsLogged = [];
+        let selectedModifier = "inner"; // Default modifier
 
         function shuffleArray(array) {
             let currentIndex = array.length, randomIndex;
@@ -452,7 +460,79 @@
         function startConquest() {
             document.getElementById("screen-draft").classList.add("hidden");
             document.getElementById("screen-conquest").classList.remove("hidden");
+            buildNumberKeypad();
             updateConquestUI();
+        }
+
+        function buildNumberKeypad() {
+            const keypad = document.getElementById("number-keypad");
+            let html = "";
+            for(let i = 1; i <= 20; i++) {
+                html += `<button class="number-btn" onclick="logDartNumber(${i})">${i}</button>`;
+            }
+            html += `<button class="number-btn" onclick="logDartNumber(25)" style="background: #3b2c1a;">Outer Bull (25)</button>`;
+            html += `<button class="number-btn" onclick="logDartNumber(50)" style="background: #4a251a;">Inner Bull (50)</button>`;
+            html += `<button class="number-btn" onclick="logDartNumber(0)" style="background: #2c1a1a; grid-column: span 3;">Miss (0)</button>`;
+            keypad.innerHTML = html;
+        }
+
+        function setModifier(mod) {
+            selectedModifier = mod;
+            document.querySelectorAll(".modifier-btn").forEach(btn => btn.classList.remove("active"));
+            document.getElementById(`mod-${mod}`).classList.add("active");
+        }
+
+        function logDartNumber(num) {
+            if (currentDartsLogged.length >= 3) return;
+
+            let mod = selectedModifier;
+            // Bulls and Misses don't use inner/outer ring multipliers in standard darts
+            if (num === 25 || num === 50 || num === 0) {
+                mod = 'outer';
+            }
+
+            currentDartsLogged.push({ number: num, multiplier: mod });
+
+            // Default modifier back to inner after every dart
+            setModifier('inner');
+
+            updateDartPreviewUI();
+        }
+
+        function undoLastDart() {
+            if (currentDartsLogged.length > 0) {
+                currentDartsLogged.pop();
+                updateDartPreviewUI();
+            }
+        }
+
+        function updateDartPreviewUI() {
+            const preview = document.getElementById("darts-preview-display");
+            const resolveBtn = document.getElementById("resolve-turn-btn");
+            const dartLabel = document.getElementById("current-dart-label");
+
+            let count = currentDartsLogged.length;
+            dartLabel.innerText = count < 3 ? `Logging Dart ${count + 1} of 3` : `All 3 Darts Logged!`;
+
+            let displayTexts = [];
+            for(let i = 0; i < 3; i++) {
+                if (i < count) {
+                    let d = currentDartsLogged[i];
+                    let modName = d.multiplier.charAt(0).toUpperCase() + d.multiplier.slice(1);
+                    let nameStr = d.number === 25 ? "Outer Bull" : (d.number === 50 ? "Inner Bull" : (d.number === 0 ? "Miss" : `${modName} ${d.number}`));
+                    displayTexts.push(`Dart ${i+1}: ${nameStr}`);
+                } else {
+                    displayTexts.push(`Dart ${i+1}: -`);
+                }
+            }
+
+            preview.innerHTML = displayTexts.join(" | ");
+
+            if (count === 3) {
+                resolveBtn.classList.remove("hidden");
+            } else {
+                resolveBtn.classList.add("hidden");
+            }
         }
 
         function updateConquestUI() {
@@ -476,7 +556,6 @@
 
             let activeP = activePlayersState[activeTurnIndex];
 
-            // Passive Turn-Start Ability Triggers
             if (activeP.character === "Pope Asshole" && activeP.hp < activeP.maxHp) {
                 activeP.hp = Math.min(activeP.maxHp, activeP.hp + 5);
                 document.getElementById("game-logger").innerHTML += `✨ Pope Asshole regenerates +5 HP at turn start!<br>`;
@@ -507,11 +586,17 @@
                 </tr>
             `).join('');
 
-            let throwControls = document.querySelectorAll(".dart-throw-group select");
+            // Reset turn input state
+            currentDartsLogged = [];
+            setModifier('inner'); // Default modifier to inner
+            updateDartPreviewUI();
+
+            let keypadContainer = document.querySelector(".dart-keypad");
             let targetControl = document.getElementById("target-player-select");
             
             if (activeP.isAi) {
-                throwControls.forEach(el => el.disabled = true);
+                keypadContainer.style.opacity = "0.4";
+                keypadContainer.style.pointerEvents = "none";
                 targetControl.disabled = true;
                 
                 let aliveIndices = [];
@@ -523,7 +608,8 @@
 
                 setTimeout(() => executeAiTurn(activeP), 1000);
             } else {
-                throwControls.forEach(el => el.disabled = false);
+                keypadContainer.style.opacity = "1";
+                keypadContainer.style.pointerEvents = "auto";
                 targetControl.disabled = false;
             }
         }
@@ -554,9 +640,8 @@
 
                 if (multType === 'double') multVal = 2;
                 else if (multType === 'triple') multVal = 3;
-                else multVal = 1; // outer or inner single are both 1x value
+                else multVal = 1; 
 
-                // Strega Rogue & Alchemist ability overrides for misses (0)
                 if (currentNum === 0) {
                     if (activeP.character === "The Rogue" && !activeP.abilityUsed) {
                         currentNum = 10; multType = 'outer'; multVal = 1;
@@ -585,7 +670,6 @@
                 if (multType === 'outer') outerSingleCount++;
             });
 
-            // Barbarian Rage (Below 100 HP, singles count as double)
             if (activeP.character === "Barbarian" && activeP.hp < 100) {
                 totalTurnScore += totalTurnScore; 
                 logger.innerHTML += `🔥 Barbarian Rage surges! Singles count as double score!<br>`;
@@ -593,19 +677,16 @@
 
             let damageDealt = Math.floor(totalTurnScore / 3);
 
-            // Ranger Precision Tracker
             if (activeP.character === "Ranger" && missCount >= 1) {
                 damageDealt = Math.floor(damageDealt * 1.5);
                 logger.innerHTML += `🏹 Ranger missed once, unleashing 1.5x damage on the rest!<br>`;
             }
 
-            // Target Bonus
             if (hitTargetCount > 0) {
                 damageDealt += (hitTargetCount * 10);
                 logger.innerHTML += `🎯 <strong>${activeP.name}</strong> struck sacred target #${activeP.targetNumber} ${hitTargetCount}x! (+${hitTargetCount * 10} dmg)<br>`;
             }
 
-            // Character Specific Combos & Passives
             if (activeP.character === "Queen B" && hitDouble) {
                 damageDealt += 15;
                 logger.innerHTML += `👑 Queen B Royal Decree grants +15 bonus double damage!<br>`;
@@ -632,8 +713,7 @@
             }
             if (activeP.character === "Assassin") {
                 let lastDart = shots[2];
-                let lastNum = parseInt(document.getElementById("d3-number").value);
-                if (lastNum === 25 || lastNum === 50) {
+                if (lastDart && (lastDart.number === 25 || lastDart.number === 50)) {
                     damageDealt += 25;
                     logger.innerHTML += `🥷 Assassin lands a lethal Bullseye, bypassing defense for +25 piercing damage!<br>`;
                 }
@@ -663,14 +743,13 @@
 
             if (currentRound >= 5) damageDealt *= 2; 
 
-            // Select Target Opponent
             let selectedTargetIndex = parseInt(document.getElementById("target-player-select").value);
             let targetP = activePlayersState[selectedTargetIndex];
 
             if (!targetP || targetP.isEliminated) {
                 let targetIndex = (activeTurnIndex + 1) % activePlayersState.length;
                 while(activePlayersState[targetIndex].isEliminated && targetIndex !== activeTurnIndex) {
-                    targetIndex = (activeTurnIndex + 1) % activePlayersState.length;
+                    targetIndex = (targetIndex + 1) % activePlayersState.length;
                 }
                 targetP = activePlayersState[targetIndex];
             }
@@ -710,18 +789,9 @@
         }
 
         function submitTurn() {
+            if (currentDartsLogged.length < 3) return;
             let activeP = activePlayersState[activeTurnIndex];
-            
-            let shots = [
-                { multiplier: document.getElementById("d1-multiplier").value, number: parseInt(document.getElementById("d1-number").value) },
-                { multiplier: document.getElementById("d2-multiplier").value, number: parseInt(document.getElementById("d2-number").value) },
-                { multiplier: document.getElementById("d3-multiplier").value, number: parseInt(document.getElementById("d3-number").value) }
-            ];
-
-            document.getElementById("d1-multiplier").value = "outer"; document.getElementById("d1-number").value = "0";
-            document.getElementById("d2-multiplier").value = "outer"; document.getElementById("d2-number").value = "0";
-            document.getElementById("d3-multiplier").value = "outer"; document.getElementById("d3-number").value = "0";
-
+            let shots = [...currentDartsLogged];
             processTurnShots(shots, activeP);
         }
 
@@ -734,7 +804,7 @@
 
                 if (isAccurate) {
                     num = aiPlayer.targetNumber;
-                    multType = Math.random() < 0.2 ? 'double' : 'outer'; 
+                    multType = Math.random() < 0.2 ? 'double' : 'inner'; 
                 } else {
                     num = Math.floor(Math.random() * 20) + 1; 
                     multType = 'outer';
@@ -746,23 +816,22 @@
         }
 
         function openDamageGuide() {
-            alert("📜 REDLAROVIA DAMAGE GUIDE:\n\n1. BASE DAMAGE: Your 3-dart total score is divided by 3.\n\n2. TARGET BONUS: Hitting your character's sacred Target Number adds +10 flat damage per hit!\n\n3. RINGS: You can now choose between Inner Singles, Outer Singles, Doubles, and Triples to trigger specific class perks like the Wizard or Berserker!\n\n4. REALM CRISIS: From Round 5 onwards, all final damage values are DOUBLED!");
+            alert("📜 REDLAROVIA DAMAGE GUIDE:\n\n1. BASE DAMAGE: Your 3-dart total score is divided by 3.\n\n2. TARGET BONUS: Hitting your character's sacred Target Number adds +10 flat damage per hit!\n\n3. RINGS: Click Inner Single, Outer Single, Double, or Triple before selecting a number. Modifiers auto-default back to Inner Single after every throw!\n\n4. REALM CRISIS: From Round 5 onwards, all final damage values are DOUBLED!");
         }
 
-       function triggerFinale(survivors) {
-    document.getElementById("screen-conquest").classList.add("hidden");
-    document.getElementById("screen-finale").classList.remove("hidden");
+        function triggerFinale(survivors) {
+            document.getElementById("screen-conquest").classList.add("hidden");
+            document.getElementById("screen-finale").classList.remove("hidden");
 
-    let winner = survivors.length > 0 ? survivors[0] : [...activePlayersState].sort((a, b) => b.hp - a.hp)[0];
-    
-    document.getElementById("finale-winner-banner").innerHTML = `
-        <div style="margin-bottom: 20px;">
-            <img src="${winner && winner.img ? winner.img : 'Redlar.png'}" alt="${winner ? winner.character : 'Champion'}" style="max-width: 220px; max-height: 280px; border-radius: 8px; border: 3px solid var(--accent-gold); object-fit: contain; box-shadow: 0 8px 16px rgba(0,0,0,0.8); background: #161412; padding: 5px;">
-        </div>
-        🏆 <strong>${winner ? winner.name : 'A Challenger'}</strong> playing as <strong>${winner ? winner.character : 'Hero'}</strong> has conquered Redlarovia!<br>
-        <span style="color:var(--text-muted); font-size:1rem;">The realm is saved within the 20-30 minute prophecy.</span>
-    `;
-}
+            let winner = survivors.length > 0 ? survivors[0] : [...activePlayersState].sort((a, b) => b.hp - a.hp)[0];
+            document.getElementById("finale-winner-banner").innerHTML = `
+                <div style="margin-bottom: 20px;">
+                    <img src="${winner && winner.img ? winner.img : 'Redlar.png'}" alt="${winner ? winner.character : 'Champion'}" style="max-width: 220px; max-height: 280px; border-radius: 8px; border: 3px solid var(--accent-gold); object-fit: contain; box-shadow: 0 8px 16px rgba(0,0,0,0.8); background: #161412; padding: 5px;">
+                </div>
+                🏆 <strong>${winner ? winner.name : 'A Challenger'}</strong> playing as <strong>${winner ? winner.character : 'Hero'}</strong> has conquered Redlarovia!<br>
+                <span style="color:var(--text-muted); font-size:1rem;">The realm is saved within the 20-30 minute prophecy.</span>
+            `;
+        }
     </script>
 </body>
 </html>
