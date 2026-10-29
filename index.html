@@ -316,7 +316,7 @@
             { name: "Pope Asshole", role: "High Cleric", ability: "+15 HP regeneration per round", img: "Pope.png" },
             { name: "The Rogue", role: "Cutthroat", ability: "Rethrow one missed dart per game", img: "Rogue.png" },
             { name: "Ranger", role: "Precision Tracker", ability: "Miss board once = 1.5x damage on rest", img: "Ranger.png" },
-            { name: "Warlock", role: "Pact Magic User", ability: "Sacrifice 20 HP to deal 25 direct damage", img: "Warlock.png" },
+            { name: "Warlock", role: "Pact Magic User", ability: "Sacrifice 20 HP to deal 25 direct damage (On-demand choice)", img: "Warlock.png" },
             { name: "Bulwark the Berserker", role: "Frenzied Marauder", ability: "All 3 outer singles = double damage", img: "Berserker.png" },
             { name: "Necromancer", role: "Dark Sorcerer", ability: "Steals 10 HP when hitting triples", img: "Necromancer.png" },
             { name: "Jester", role: "Wildcard Trickster", ability: "Wildcard: Gains a new chaotic ability every round!", img: "Jester.png" },
@@ -438,7 +438,6 @@
                 finalLobby.push(`🤖 ${botName}`);
             }
 
-            // Build roster pool based on board type selection
             let activeRosterPool = [...standardCharacterRoster];
             if (isQuadBoard) {
                 activeRosterPool = activeRosterPool.concat(quadExclusiveRoster);
@@ -608,10 +607,10 @@
 
             let activeP = activePlayersState[activeTurnIndex];
 
-           if (activeP.character === "Pope Asshole" && activeP.hp < activeP.maxHp) {
-    activeP.hp = Math.min(activeP.maxHp, activeP.hp + 15);
-    document.getElementById("game-logger").innerHTML += `✨ Pope Asshole regenerates +15 HP at turn start!<br>`;
-}
+            if (activeP.character === "Pope Asshole" && activeP.hp < activeP.maxHp) {
+                activeP.hp = Math.min(activeP.maxHp, activeP.hp + 15);
+                document.getElementById("game-logger").innerHTML += `✨ Pope Asshole regenerates +15 HP at turn start!<br>`;
+            }
             if (activeP.character === "Bard") {
                 activeP.hp = Math.min(activeP.maxHp, activeP.hp + 5);
                 document.getElementById("game-logger").innerHTML += `🎶 Bard plays a tavern melody, generating +5 HP!<br>`;
@@ -641,21 +640,30 @@
             currentDartsLogged = [];
             setModifier('inner');
             updateDartPreviewUI();
+
             // Jester Shifting Ability Rotation
-if (activeP.character === "Jester") {
-    const jesterPowers = [
-        { name: "🃏 Laughing Stock: Reverses turn order when hitting a 1.", effect: "reverse" },
-        { name: "🎭 Fool's Gold: Scoring a 20 grants +10 bonus damage.", effect: "gold" },
-        { name: "🃏 Sleight of Hand: Missed darts (0) automatically count as 5 points.", effect: "sleight" },
-        { name: "🎭 Prankster's Grin: Healing +10 HP at the start of the turn.", effect: "heal" },
-        { name: "🃏 Wildcard Madness: Doubles raw score if total score is odd.", effect: "madness" }
-    ];
-    
-    // Pick an ability based on the current round (cycles 1 through 5)
-    let currentPower = jesterPowers[(currentRound - 1) % jesterPowers.length];
-    activeP.ability = currentPower.name;
-    activeP.jesterEffect = currentPower.effect;
-}
+            if (activeP.character === "Jester") {
+                const jesterPowers = [
+                    { name: "🃏 Laughing Stock: Reverses turn order when hitting a 1.", effect: "reverse" },
+                    { name: "🎭 Fool's Gold: Scoring a 20 grants +10 bonus damage.", effect: "gold" },
+                    { name: "🃏 Sleight of Hand: Missed darts (0) automatically count as 5 points.", effect: "sleight" },
+                    { name: "🎭 Prankster's Grin: Healing +10 HP at the start of the turn.", effect: "heal" },
+                    { name: "🃏 Wildcard Madness: Doubles raw score if total score is odd.", effect: "madness" }
+                ];
+                let currentPower = jesterPowers[(currentRound - 1) % jesterPowers.length];
+                activeP.ability = currentPower.name;
+                activeP.jesterEffect = currentPower.effect;
+            }
+
+            // Warlock On-Demand Ability Prompt (Human players only)
+            if (activeP.character === "Warlock" && !activeP.abilityUsed && !activeP.isAi) {
+                let useWarlockAbility = confirm(`🔮 Dark Pact Ready, ${activeP.name}!\n\nDo you want to sacrifice 20 HP this turn to deal 25 direct damage?`);
+                if (useWarlockAbility) {
+                    activeP.warlockQueued = true;
+                } else {
+                    activeP.warlockQueued = false;
+                }
+            }
 
             let keypadContainer = document.querySelector(".dart-keypad");
             let targetControl = document.getElementById("target-player-select");
@@ -665,6 +673,13 @@ if (activeP.character === "Jester") {
                 keypadContainer.style.pointerEvents = "none";
                 targetControl.disabled = true;
                 
+                // AI Warlock decision logic (uses ability if health is above 40)
+                if (activeP.character === "Warlock" && !activeP.abilityUsed && activeP.hp > 40 && Math.random() < 0.5) {
+                    activeP.warlockQueued = true;
+                } else {
+                    activeP.warlockQueued = false;
+                }
+
                 let aliveIndices = [];
                 activePlayersState.forEach((p, idx) => {
                     if (!p.isEliminated && idx !== activeTurnIndex) aliveIndices.push(idx);
@@ -703,7 +718,7 @@ if (activeP.character === "Jester") {
 
             shots.forEach((shot, idx) => {
                 let currentNum = shot.number;
-                let multType = shot.multiplier; // 'inner', 'middle', 'outer', 'double', 'triple', 'quad'
+                let multType = shot.multiplier; 
                 let multVal = 1;
 
                 if (multType === 'double') multVal = 2;
@@ -714,29 +729,7 @@ if (activeP.character === "Jester") {
                 } else {
                     multVal = 1; 
                 }
-// Jester Dynamic Effect Triggers
-if (activeP.character === "Jester") {
-    if (activeP.jesterEffect === "reverse" && numbersHit.includes(1)) {
-        turnOrderReversed = !turnOrderReversed;
-        logger.innerHTML += `🃏 Jester hits a 1! Turn order has been REVERSED!<br>`;
-    }
-    if (activeP.jesterEffect === "gold" && numbersHit.includes(20)) {
-        damageDealt += 10;
-        logger.innerHTML += `🎭 Fool's Gold triggers on a 20! +10 bonus damage!<br>`;
-    }
-    if (activeP.jesterEffect === "sleight" && missCount > 0) {
-        totalTurnScore += (missCount * 5);
-        logger.innerHTML += `🃏 Sleight of Hand turns misses into +${missCount * 5} points!<br>`;
-    }
-    if (activeP.jesterEffect === "heal") {
-        activeP.hp = Math.min(activeP.maxHp, activeP.hp + 10);
-        logger.innerHTML += `🎭 Prankster's Grin heals Jester for +10 HP!<br>`;
-    }
-    if (activeP.jesterEffect === "madness" && totalTurnScore % 2 !== 0) {
-        totalTurnScore *= 2;
-        logger.innerHTML += `🃏 Wildcard Madness! Odd total score doubled your output!<br>`;
-    }
-}
+
                 if (currentNum === 0) {
                     if (activeP.character === "The Rogue" && !activeP.abilityUsed) {
                         currentNum = 10; multType = 'outer'; multVal = 1;
@@ -765,6 +758,30 @@ if (activeP.character === "Jester") {
                 if (multType === 'middle') middleSingleCount++;
                 if (multType === 'outer') outerSingleCount++;
             });
+
+            // Jester Dynamic Effect Triggers
+            if (activeP.character === "Jester") {
+                if (activeP.jesterEffect === "reverse" && numbersHit.includes(1)) {
+                    turnOrderReversed = !turnOrderReversed;
+                    logger.innerHTML += `🃏 Jester hits a 1! Turn order has been REVERSED!<br>`;
+                }
+                if (activeP.jesterEffect === "gold" && numbersHit.includes(20)) {
+                    damageDealt += 10;
+                    logger.innerHTML += `🎭 Fool's Gold triggers on a 20! +10 bonus damage!<br>`;
+                }
+                if (activeP.jesterEffect === "sleight" && missCount > 0) {
+                    totalTurnScore += (missCount * 5);
+                    logger.innerHTML += `🃏 Sleight of Hand turns misses into +${missCount * 5} points!<br>`;
+                }
+                if (activeP.jesterEffect === "heal") {
+                    activeP.hp = Math.min(activeP.maxHp, activeP.hp + 10);
+                    logger.innerHTML += `🎭 Prankster's Grin heals Jester for +10 HP!<br>`;
+                }
+                if (activeP.jesterEffect === "madness" && totalTurnScore % 2 !== 0) {
+                    totalTurnScore *= 2;
+                    logger.innerHTML += `🃏 Wildcard Madness! Odd total score doubled your output!<br>`;
+                }
+            }
 
             if (activeP.character === "Barbarian" && activeP.hp < 100) {
                 totalTurnScore += totalTurnScore; 
@@ -816,11 +833,13 @@ if (activeP.character === "Jester") {
                     logger.innerHTML += `🥷 Assassin lands a lethal Bullseye, bypassing defense for +25 piercing damage!<br>`;
                 }
             }
-            if (activeP.character === "Warlock" && !activeP.abilityUsed) {
+            // Warlock On-Demand Ability Execution
+            if (activeP.character === "Warlock" && activeP.warlockQueued && !activeP.abilityUsed) {
                 activeP.hp -= 20;
                 damageDealt += 25;
                 activeP.abilityUsed = true;
-                logger.innerHTML += `🔮 Warlock sacrifices 20 HP of their own life force to deal 25 direct dark damage!<br>`;
+                activeP.warlockQueued = false;
+                logger.innerHTML += `🔮 Warlock executed Dark Pact! Sacrificed 20 HP to deal 25 direct dark damage!<br>`;
             }
             if (activeP.character === "Jester" && numbersHit.includes(1)) {
                 turnOrderReversed = !turnOrderReversed;
