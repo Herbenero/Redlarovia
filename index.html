@@ -141,6 +141,17 @@
             border-radius: 4px;
             border: 1px solid #3b3026;
         }
+
+        .ability-box {
+            background: #191410;
+            border: 1px dashed var(--accent-gold);
+            padding: 8px;
+            border-radius: 4px;
+            margin: 8px 0;
+            font-size: 0.9rem;
+            color: var(--text-main);
+            text-align: center;
+        }
     </style>
 </head>
 <body>
@@ -199,9 +210,16 @@
                 <tbody id="scoreboard-body"></tbody>
             </table>
 
-            <div style="background: #231b14; padding: 15px; border-radius: 6px; border: 1px solid var(--accent-gold);">
-                <h3 id="current-turn-heading" style="margin-top: 0;"></h3>
+            <div style="background: #231b14; padding: 15px; border-radius: 6px; border: 1px solid var(--accent-gold); position: relative;">
                 
+                <!-- Damage Explanation Guide Button -->
+                <button onclick="openDamageGuide()" style="position: absolute; top: 15px; right: 15px; background: #3b3026; color: var(--accent-gold); font-size: 0.8rem; padding: 5px 10px;">📜 Damage Guide</button>
+
+                <h3 id="current-turn-heading" style="margin-top: 0; text-align: left; padding-right: 100px;"></h3>
+                
+                <!-- Character Ability Displayed Right Here -->
+                <div id="current-turn-ability" class="ability-box"></div>
+
                 <!-- Manual Target Selection Dropdown -->
                 <div style="background: #1e1813; padding: 10px; margin: 10px 0; border-radius: 4px; border: 1px solid #3b3026;">
                     <label for="target-player-select"><strong>⚔️ Choose Target Opponent:</strong></label>
@@ -307,7 +325,6 @@
             { name: "Alchemist", role: "Potion Brewer", ability: "Turn a miss into flat 20 points once" }
         ];
 
-        // Medieval AI Bot Name Pool
         const medievalAiNames = [
             "Sir Bot-A-Lot", "Erowyn the Greybot", "Gears-A-Lot", "Lady Circuit", 
             "Automaton of Oakhaven", "Iron-Clank the Bold", "Clockwork Crusader", 
@@ -387,7 +404,6 @@
             let aiCount = parseInt(document.getElementById("ai-count-select").value) || 0;
             let finalLobby = [...playersInputNames];
             
-            // Randomly select unique medieval AI names from the pool
             let availableAiNames = shuffleArray([...medievalAiNames]);
             for(let i = 0; i < aiCount; i++) {
                 let botName = availableAiNames[i] || `Automaton Bot ${i + 1}`;
@@ -455,7 +471,10 @@
             }
 
             let activeP = activePlayersState[activeTurnIndex];
+            
+            // Set Turn Heading and Ability Box Display
             document.getElementById("current-turn-heading").innerText = `${activeP.name}'s Turn (${activeP.character} - Target: #${activeP.targetNumber})`;
+            document.getElementById("current-turn-ability").innerHTML = `✨ <strong>Character Ability:</strong> ${activeP.ability}`;
 
             let targetSelect = document.getElementById("target-player-select");
             targetSelect.innerHTML = "";
@@ -594,6 +613,10 @@
             }
 
             processTurnShots(shots, aiPlayer);
+        }
+
+        function openDamageGuide() {
+            alert("📜 REDLAROVIA DAMAGE GUIDE:\n\n1. BASE DAMAGE: Your 3-dart total score is divided by 3 (e.g., scoring 60 gives 20 base damage).\n\n2. TARGET BONUS: Hitting your character's sacred Target Number adds +10 flat damage per hit!\n\n3. ABILITIES: Certain classes trigger bonus effects on doubles, triples, or special rolls.\n\n4. REALM CRISIS: From Round 5 onwards, all final damage values are DOUBLED!");
         }
 
         function triggerFinale(survivors) {
