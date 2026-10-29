@@ -307,6 +307,16 @@
             { name: "Alchemist", role: "Potion Brewer", ability: "Turn a miss into flat 20 points once" }
         ];
 
+        // Medieval AI Bot Name Pool
+        const medievalAiNames = [
+            "Sir Bot-A-Lot", "Byte-Warden", "Gears-A-Lot", "Lady Circuit", 
+            "Automaton of Oakhaven", "Iron-Clank the Bold", "Clockwork Crusader", 
+            "Sprocket the Swift", "Cog-Smith", "Data-Mage Alistair", 
+            "Anvil-Byte", "Sir Rust-A-Byte", "Brass Golem-9", "Tin-Can Templar", 
+            "Gear-Heart", "Cipher the Scribe", "Automaton Squire", 
+            "Parchment-Bot", "The Alchemist's Engine", "Lord Binary"
+        ];
+
         let playersInputNames = [];
         let activePlayersState = [];
         let currentRound = 1;
@@ -377,8 +387,11 @@
             let aiCount = parseInt(document.getElementById("ai-count-select").value) || 0;
             let finalLobby = [...playersInputNames];
             
-            for(let i = 1; i <= aiCount; i++) {
-                finalLobby.push(`🤖 A.I. Bot ${i}`);
+            // Randomly select unique medieval AI names from the pool
+            let availableAiNames = shuffleArray([...medievalAiNames]);
+            for(let i = 0; i < aiCount; i++) {
+                let botName = availableAiNames[i] || `Automaton Bot ${i + 1}`;
+                finalLobby.push(`🤖 ${botName}`);
             }
 
             let shuffledRoster = shuffleArray([...masterCharacterRoster]);
@@ -444,7 +457,6 @@
             let activeP = activePlayersState[activeTurnIndex];
             document.getElementById("current-turn-heading").innerText = `${activeP.name}'s Turn (${activeP.character} - Target: #${activeP.targetNumber})`;
 
-            // Populate target dropdown with active opponents
             let targetSelect = document.getElementById("target-player-select");
             targetSelect.innerHTML = "";
             activePlayersState.forEach((p, idx) => {
@@ -470,7 +482,6 @@
                 throwControls.forEach(el => el.disabled = true);
                 targetControl.disabled = true;
                 
-                // AI picks a random alive target opponent
                 let aliveIndices = [];
                 activePlayersState.forEach((p, idx) => {
                     if (!p.isEliminated && idx !== activeTurnIndex) aliveIndices.push(idx);
@@ -520,7 +531,6 @@
 
             if (currentRound >= 5) damageDealt *= 2; 
 
-            // Read chosen manual target from dropdown
             let selectedTargetIndex = parseInt(document.getElementById("target-player-select").value);
             let targetP = activePlayersState[selectedTargetIndex];
 
