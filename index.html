@@ -3,409 +3,401 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mystic Warlords of Ka'a: Quadro Dart Edition</title>
+    <title>Redlarovia: Medieval Dart RPG</title>
     <style>
         :root {
-            --bg-dark: #121216;
-            --panel-bg: #1e1e24;
+            --bg-color: #1a1612;
+            --panel-bg: #2c241d;
             --accent-gold: #d4af37;
-            --accent-red: #8b0000;
-            --text-main: #f0f0f0;
-            --text-muted: #aaaaaa;
-            --border-color: #33333d;
+            --text-main: #f4e8c1;
+            --text-muted: #a39171;
+            --danger: #8b0000;
+            --success: #2e6f40;
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: var(--bg-dark);
+            font-family: 'Cinzel', 'Georgia', serif;
+            background-color: var(--bg-color);
             color: var(--text-main);
             margin: 0;
             padding: 20px;
             display: flex;
             flex-direction: column;
             align-items: center;
-            min-height: 100vh;
         }
 
-        header {
-            text-align: center;
-            margin-bottom: 20px;
-        }
-
-        header h1 {
+        h1, h2, h3 {
             color: var(--accent-gold);
-            margin: 0 0 5px 0;
-            font-size: 2rem;
+            text-align: center;
             text-transform: uppercase;
             letter-spacing: 2px;
         }
 
-        header p {
-            color: var(--text-muted);
-            margin: 0;
-            font-size: 0.95rem;
-        }
-
-        .main-container {
-            display: grid;
-            grid-template-columns: 1fr 350px;
-            gap: 20px;
+        .game-container {
             width: 100%;
-            max-width: 1200px;
-        }
-
-        @media (max-width: 900px) {
-            .main-container {
-                grid-template-columns: 1fr;
-            }
-        }
-
-        .card-library-panel, .gamepad-panel {
+            max-width: 800px;
             background-color: var(--panel-bg);
-            border: 1px solid var(--border-color);
+            border: 3px solid var(--accent-gold);
             border-radius: 8px;
             padding: 20px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+            box-shadow: 0 8px 16px rgba(0,0,0,0.7);
         }
 
-        h2 {
-            border-bottom: 2px solid var(--accent-red);
-            padding-bottom: 8px;
-            margin-top: 0;
-            font-size: 1.2rem;
-            color: var(--accent-gold);
-        }
-
-        .deck-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-            gap: 15px;
-            max-height: 650px;
-            overflow-y: auto;
-            padding-right: 5px;
-        }
-
-        .card {
-            background-color: #262630;
-            border: 1px solid #444;
-            border-radius: 6px;
-            padding: 12px;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            transition: transform 0.2s, border-color 0.2s;
-        }
-
-        .card:hover {
-            transform: translateY(-3px);
-            border-color: var(--accent-gold);
-        }
-
-        .card-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 8px;
-            border-bottom: 1px solid #3a3a48;
-            padding-bottom: 6px;
-        }
-
-        .card-title {
-            font-weight: bold;
-            color: #fff;
-            font-size: 0.95rem;
-        }
-
-        .card-cost {
-            background-color: #3b2f00;
-            color: var(--accent-gold);
-            padding: 2px 6px;
-            border-radius: 4px;
-            font-size: 0.8rem;
-            font-weight: bold;
-            border: 1px solid var(--accent-gold);
-        }
-
-        .card-details {
-            font-size: 0.85rem;
-            color: var(--text-muted);
-            margin-bottom: 10px;
-        }
-
-        .card-details span {
-            color: #fff;
-            font-weight: 500;
-        }
-
-        .card-effect {
-            font-size: 0.82rem;
-            background-color: #18181f;
-            padding: 8px;
-            border-radius: 4px;
-            border-left: 3px solid var(--accent-red);
-        }
-
-        /* Game State Panel */
-        .stat-box {
-            background-color: #16161b;
-            border: 1px solid #333;
-            border-radius: 6px;
-            padding: 12px;
-            margin-bottom: 15px;
-        }
-
-        .stat-row {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 8px;
-            font-size: 0.95rem;
-        }
-
-        .stat-row:last-child {
-            margin-bottom: 0;
-        }
-
-        .stat-value {
-            font-weight: bold;
-            color: var(--accent-gold);
-        }
-
-        .controls-group {
-            margin-bottom: 15px;
-        }
-
-        label {
-            display: block;
-            font-size: 0.85rem;
-            color: var(--text-muted);
-            margin-bottom: 5px;
-        }
-
-        select, input, button {
-            width: 100%;
-            padding: 10px;
-            background-color: #2b2b36;
-            border: 1px solid #444;
-            color: #fff;
-            border-radius: 4px;
-            font-size: 0.9rem;
-            box-sizing: border-box;
-        }
-
-        select:focus, input:focus {
-            outline: none;
-            border-color: var(--accent-gold);
+        .hidden {
+            display: none !important;
         }
 
         button {
-            background-color: var(--accent-red);
-            color: white;
-            font-weight: bold;
-            cursor: pointer;
-            text-transform: uppercase;
-            letter-spacing: 1px;
+            background-color: var(--accent-gold);
+            color: var(--bg-color);
             border: none;
-            transition: background-color 0.2s;
-            margin-top: 5px;
+            padding: 10px 20px;
+            font-family: inherit;
+            font-weight: bold;
+            font-size: 1rem;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: background 0.2s;
+            margin: 5px;
         }
 
         button:hover {
-            background-color: #a30000;
+            background-color: #f3c653;
         }
 
-        button.secondary {
-            background-color: #33333d;
-            margin-top: 8px;
+        input {
+            padding: 8px;
+            background: #111;
+            border: 1px solid var(--accent-gold);
+            color: var(--text-main);
+            border-radius: 4px;
+            font-family: inherit;
+            margin: 5px;
         }
 
-        button.secondary:hover {
-            background-color: #444455;
+        .player-setup-list {
+            margin: 15px 0;
         }
 
-        .log-box {
-            background-color: #16161b;
-            border: 1px solid #333;
+        /* Act Layouts */
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .character-card {
+            background: #1e1813;
+            border: 1px solid var(--accent-gold);
+            padding: 12px;
             border-radius: 6px;
+            text-align: left;
+        }
+
+        .character-card h4 {
+            margin: 0 0 5px 0;
+            color: var(--accent-gold);
+        }
+
+        .stats-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+
+        .stats-table th, .stats-table td {
+            border: 1px solid var(--text-muted);
+            padding: 10px;
+            text-align: center;
+        }
+
+        .stats-table th {
+            background-color: #3b3026;
+            color: var(--accent-gold);
+        }
+
+        .logger {
+            background: #111;
+            border: 1px dashed var(--text-muted);
             padding: 10px;
             height: 120px;
             overflow-y: auto;
             font-family: monospace;
-            font-size: 0.8rem;
-            color: #00ffcc;
+            font-size: 0.9rem;
+            color: #dcdcdc;
+            margin-top: 15px;
+            text-align: left;
+        }
+
+        .highlight-crisis {
+            color: #ff4d4d;
+            font-weight: bold;
         }
     </style>
 </head>
 <body>
 
-    <header>
-        <h1>Mystic Warlords of Ka'a</h1>
-        <p>Quadro Dart Board Edition — Card Directory & Match Coordinator</p>
-    </header>
+    <div class="game-container">
+        <h1>Redlarovia</h1>
+        <p style="text-align: center; color: var(--text-muted); margin-top: -10px;">The Medieval Tavern Dart RPG (20–30 Mins)</p>
 
-    <div class="main-container">
-        <!-- Card Library Section -->
-        <div class="card-library-panel">
-            <h2>Expansions & Card Directory</h2>
-            <div class="deck-grid" id="cardGrid">
-                <!-- Cards injected dynamically via script -->
+        <!-- SETUP SCREEN -->
+        <div id="screen-setup">
+            <h2>Enter Adventurers</h2>
+            <p>Add 2 to 4 players to enter the realm:</p>
+            <div style="text-align: center;">
+                <input type="text" id="player-input" placeholder="Player Name">
+                <button onclick="addPlayer()">Add Player</button>
+            </div>
+            <div id="player-list-display" class="player-setup-list"></div>
+            <div style="text-align: center; margin-top: 20px;">
+                <button id="start-btn" onclick="startDraft()" class="hidden">Begin Tavern Draft (Act I)</button>
             </div>
         </div>
 
-        <!-- Game Simulation & Matchpad Panel -->
-        <div class="gamepad-panel">
-            <h2>Match Coordinator</h2>
+        <!-- ACT I: DRAFT SCREEN -->
+        <div id="screen-draft" class="hidden">
+            <h2>Act I: The Tavern Draft</h2>
+            <p>The 20 characters have been randomly shuffled and assigned target dart numbers for this realm rotation!</p>
+            <div id="draft-results" class="card-grid"></div>
+            <div style="text-align: center; margin-top: 20px;">
+                <button onclick="startConquest()">Enter Realm Conquest (Act II)</button>
+            </div>
+        </div>
+
+        <!-- ACT II & III: CONQUEST / CRISIS SCREEN -->
+        <div id="screen-conquest" class="hidden">
+            <h2 id="act-title">Act II: Realm Conquest</h2>
+            <div id="crisis-banner" style="text-align: center; min-height: 25px;"></div>
             
-            <div class="stat-box">
-                <div class="stat-row">
-                    <span>Active Warlord HP:</span>
-                    <span class="stat-value" id="hpVal">20 / 20</span>
-                </div>
-                <div class="stat-row">
-                    <span>Current Round Mana:</span>
-                    <span class="stat-value" id="manaVal">0 / 8</span>
-                </div>
-                <div class="stat-row">
-                    <span>Active Shield Card:</span>
-                    <span class="stat-value" id="shieldVal">None</span>
+            <table class="stats-table" id="scoreboard-table">
+                <thead>
+                    <tr>
+                        <th>Player</th>
+                        <th>Character</th>
+                        <th>Target #</th>
+                        <th>Health (HP)</th>
+                    </tr>
+                </thead>
+                <tbody id="scoreboard-body"></tbody>
+            </table>
+
+            <div style="background: #231b14; padding: 15px; border-radius: 6px; border: 1px solid var(--accent-gold);">
+                <h3 id="current-turn-heading" style="margin-top: 0;"></h3>
+                <p>Simulate this player's 3-dart turn:</p>
+                <div style="text-align: center;">
+                    <label>Total Dart Score Thrown: <input type="number" id="turn-score-input" value="45" min="0" max="180" style="width: 80px;"></label>
+                    <label style="margin-left: 10px;"><input type="checkbox" id="hit-target-checkbox"> Hit Target Number / Double / Triple?</label>
+                    <br><br>
+                    <button onclick="submitTurn()">Resolve Turn</button>
                 </div>
             </div>
 
-            <div class="controls-group">
-                <label for="cardSelect">Deploy Card to Board Target:</label>
-                <select id="cardSelect">
-                    <option value="none">-- Select Card to Play --</option>
-                </select>
-            </div>
+            <div class="logger" id="game-logger">Realm initialized. The tavern doors lock. Fight for Redlarovia!<br></div>
+        </div>
 
-            <div class="controls-group">
-                <label for="dartThrow">Simulate Dart Segment Hit:</label>
-                <select id="dartThrow">
-                    <option value="bull">Bullseye (Inner/Outer)</option>
-                    <option value="quadro">Quadro Ring</option>
-                    <option value="treble">Triple Ring (10-20)</option>
-                    <option value="double20">Double 20 (D20)</option>
-                    <option value="double">Double Ring (Any)</option>
-                    <option value="outer">Outer Single (1-10)</option>
-                    <option value="treble_seq">Treble Sequence (6, 13, 11)</option>
-                    <option value="miss">Miss / Wire</option>
-                </select>
-            </div>
-
-            <button onclick="playTurn()">Execute Dart Throw</button>
-            <button class="secondary" onclick="resetMatch()">Reset Match State</button>
-
-            <label style="margin-top: 15px;">Match Action Log:</label>
-            <div class="log-box" id="logBox">
-                [System] Match initialized. Warlord HP set to 20. Ready for opening throws...
+        <!-- ACT IV: FINAL DUEL / ENDGAME SCREEN -->
+        <div id="screen-finale" class="hidden">
+            <h2>Act IV: The Final Showdown</h2>
+            <div id="finale-winner-banner" style="text-align: center; font-size: 1.2rem; margin: 20px 0;"></div>
+            <div style="text-align: center;">
+                <button onclick="location.reload()">Play Another Campaign</button>
             </div>
         </div>
+
     </div>
 
     <script>
-        const cardsData = [
-            { name: "The White Wizard", type: "Warlord", cost: "0 Mana", target: "Bullseye (Inner/Outer)", effect: "Primary life total (20 HP). Inner bullstrike heals 3 HP or blocks incoming spells." },
-            { name: "Billy the Kid", type: "Character", cost: "4 Mana", target: "Quadro Ring (Any)", effect: "High-risk offensive character. Successful Quadro hit strips 1 card from opponent's hand." },
-            { name: "The Goblin Alchemist", type: "Minion", cost: "2 Mana", target: "Triple Ring (10-20)", effect: "Resource generator. Each triple hit grants +2 Mana crystals for next-turn spell casting." },
-            { name: "The Flaming Spittoon", type: "Artifact", cost: "3 Mana", target: "Double 20 (D20)", effect: "Deals 4 damage to enemy minions. Missing and hitting Single 20 inflicts 2 self-damage penalty." },
-            { name: "Calamity Jane's Hex", type: "Spell", cost: "3 Mana", target: "Outer Single (1-10)", effect: "Forces opponent to hit an even number on their next turn or forfeit their card draw phase." },
-            { name: "Sheriff's Deputy Golem", type: "Minion", cost: "3 Mana", target: "Double Ring (Any)", effect: "Defensive shield card. Absorbs 1 direct Warlord attack; requires double-ring hit to bypass." },
-            { name: "Hellhound Cerberus", type: "Beast Minion", cost: "5 Mana", target: "Treble 6, 13, 11", effect: "Multi-strike creature. Requires sequential hits across specific sectors to deal heavy 5-damage strike." },
-            { name: "Abyssal Dragon-Goat", type: "Legendary Beast", cost: "7 Mana", target: "Quadro Bull / Center", effect: "Board wipe boss card. Instantly destroys all active enemy minion cards upon successful impact." }
+        // Master Roster of 20 Characters
+        const masterCharacterRoster = [
+            { name: "King Redlar", role: "Sovereign Tank", ability: "+50 starting health", bonusHp: 50 },
+            { name: "Queen B", role: "Battle Monarch", ability: "+10 damage if hitting doubles", extraDmg: 10 },
+            { name: "Pope Asshole", role: "High Cleric", ability: "+5 HP regeneration per round", regen: 5 },
+            { name: "Strega the Rogue", role: "Cutthroat", ability: "Rethrow missed darts" },
+            { name: "Ranger", role: "Precision Tracker", ability: "Miss board once = 1.5x damage on rest" },
+            { name: "Warlock", role: "Pact Magic User", ability: "Sacrifice 20 HP to drain target" },
+            { name: "Bulwark the Berserker", role: "Frenzied Marauder", ability: "All 3 outer single = double damage" },
+            { name: "Necromancer", role: "Dark Sorcerer", ability: "Steals 5 HP when hitting triples" },
+            { name: "Jester", role: "Wildcard Trickster", ability: "Hitting 1 reverses turn order" },
+            { name: "Dwarf", role: "Mountain Fighter", ability: "Numbers 1-7 grant +5 bonus damage" },
+            { name: "Assassin", role: "Shadow Stalker", ability: "Bullseye final dart bypasses defense" },
+            { name: "Knight", role: "Heavy Armored Guard", ability: "Takes 5 less damage each round" },
+            { name: "Wizard", role: "Elementalist", ability: "Inner single adds +15 burn damage" },
+            { name: "Paladin", role: "Holy Crusader", ability: "Doubles reduce incoming damage next round" },
+            { name: "Druid", role: "Nature Shaman", ability: "Score 10,11,12 in one turn to heal 30" },
+            { name: "Barbarian", role: "Rage Warrior", ability: "Below 100 HP, singles count as double" },
+            { name: "Bard", role: "Minstrel", ability: "Generates passive team health" },
+            { name: "Monk", role: "Martial Artist", ability: "Turn total multiple of 10 grants defense" },
+            { name: "Thief", role: "Pickpocket", ability: "Hitting triple 3 steals 10 points" },
+            { name: "Alchemist", role: "Potion Brewer", ability: "Turn a miss into flat 20 points once" }
         ];
 
-        let playerHP = 20;
-        let currentMana = 2;
-        let activeShield = "None";
+        let playersInputNames = [];
+        let activePlayersState = [];
+        let currentRound = 1;
+        let activeTurnIndex = 0;
+        const MAX_ROUNDS = 7; // Keeps game tightly paced to 20-30 mins
 
-        function initApp() {
-            const grid = document.getElementById('cardGrid');
-            const select = document.getElementById('cardSelect');
+        function shuffleArray(array) {
+            let currentIndex = array.length, randomIndex;
+            while (currentIndex !== 0) {
+                randomIndex = Math.floor(Math.random() * currentIndex);
+                currentIndex--;
+                [array[currentIndex], array[randomIndex]] = [array[randomIndex], array[currentIndex]];
+            }
+            return array;
+        }
 
-            cardsData.forEach(card => {
-                // Populate Card Library Grid
-                const cardEl = document.createElement('div');
-                cardEl.className = 'card';
-                cardEl.innerHTML = `
-                    <div>
-                        <div class="card-header">
-                            <span class="card-title">${card.name}</span>
-                            <span class="card-cost">${card.cost}</span>
-                        </div>
-                        <div class="card-details">
-                            <div><strong>Type:</strong> ${card.type}</div>
-                            <div><strong>Target:</strong> <span>${card.target}</span></div>
-                        </div>
-                    </div>
-                    <div class="card-effect">${card.effect}</div>
-                `;
-                grid.appendChild(cardEl);
+        function addPlayer() {
+            const input = document.getElementById("player-input");
+            const name = input.value.trim();
+            if(name && !playersInputNames.includes(name)) {
+                playersInputNames.push(name);
+                input.value = "";
+                updatePlayerListUI();
+            }
+        }
 
-                // Populate Dropdown
-                if(card.type !== "Warlord") {
-                    const opt = document.createElement('option');
-                    opt.value = card.name;
-                    opt.textContent = `${card.name} (${card.cost})`;
-                    select.appendChild(opt);
-                }
+        function updatePlayerListUI() {
+            const listDiv = document.getElementById("player-list-display");
+            listDiv.innerHTML = playersInputNames.map(p => `<span style="background:#3b3026; padding:5px 10px; margin:5px; display:inline-block; border-radius:4px;">⚔️ ${p}</span>`).join('');
+            if(playersInputNames.length >= 2) {
+                document.getElementById("start-btn").classList.remove("hidden");
+            }
+        }
+
+        function startDraft() {
+            let shuffledRoster = shuffleArray([...masterCharacterRoster]);
+            let availableNumbers = shuffleArray([...Array(20).keys()].map(x => x + 1)); // 1 to 20 random pool
+
+            activePlayersState = playersInputNames.map((name, index) => {
+                let char = shuffledRoster[index];
+                let baseHp = 300 + (char.bonusHp || 0);
+                return {
+                    name: name,
+                    character: char.name,
+                    role: char.role,
+                    ability: char.ability,
+                    targetNumber: availableNumbers[index],
+                    hp: baseHp,
+                    maxHp: baseHp,
+                    isEliminated: false
+                };
             });
-            updateStats();
+
+            // Render Act I Draft Screen
+            const draftGrid = document.getElementById("draft-results");
+            draftGrid.innerHTML = activePlayersState.map(p => `
+                <div class="character-card">
+                    <h4>${p.name}</h4>
+                    <p><strong>Champion:</strong> ${p.character} (${p.role})</p>
+                    <p style="color:var(--accent-gold); font-size:0.85rem;">Dart Target: #${p.targetNumber}</p>
+                    <p style="font-size:0.8rem; color:var(--text-muted);">${p.ability}</p>
+                </div>
+            `).join('');
+
+            document.getElementById("screen-setup").classList.add("hidden");
+            document.getElementById("screen-draft").classList.remove("hidden");
         }
 
-        function updateStats() {
-            document.getElementById('hpVal').textContent = `${playerHP} / 20`;
-            document.getElementById('manaVal').textContent = `${currentMana} / 8`;
-            document.getElementById('shieldVal').textContent = activeShield;
+        function startConquest() {
+            document.getElementById("screen-draft").classList.add("hidden");
+            document.getElementById("screen-conquest").classList.remove("hidden");
+            updateConquestUI();
         }
 
-        function logAction(message) {
-            const logBox = document.getElementById('logBox');
-            logBox.innerHTML += `> ${message}<br>`;
-            logBox.scrollTop = logBox.scrollHeight;
-        }
-
-        function playTurn() {
-            const selectedCard = document.getElementById('cardSelect').value;
-            const dartThrow = document.getElementById('dartThrow').value;
-
-            if(selectedCard === "none") {
-                logAction("Warning: Please select a card to deploy before throwing darts.");
+        function updateConquestUI() {
+            // Check round pacing limit or player survival
+            let alivePlayers = activePlayersState.filter(p => !p.isEliminated);
+            if (alivePlayers.length <= 1 || currentRound > MAX_ROUNDS) {
+                triggerFinale(alivePlayers);
                 return;
             }
 
-            logAction(`Attempting to play [${selectedCard}] with dart throw: ${dartThrow}...`);
-
-            // Game logic simulation based on dart outcome
-            if(dartThrow === "miss") {
-                playerHP = Math.max(0, playerHP - 1);
-                logAction(`Missed target sector! Backfire penalty: -1 HP. Current HP: ${playerHP}`);
+            // Handle Act III Crisis Round Trigger at Round 5
+            let crisisBanner = document.getElementById("crisis-banner");
+            let actTitle = document.getElementById("heading-act");
+            if (currentRound >= 5) {
+                document.getElementById("act-title").innerText = "Act III: Realm Crisis (Double Damage!)";
+                crisisBanner.innerHTML = `<span class="highlight-crisis">⚠️ REALM CRISIS ACTIVE: Bullseyes & attacks deal doubled wrath!</span>`;
             } else {
-                currentMana = Math.min(8, currentMana + 2);
-                logAction(`Successful hit! Card deployed. Mana gained (+2). Current Mana: ${currentMana}`);
-                
-                if(selectedCard === "Sheriff's Deputy Golem") {
-                    activeShield = "Active (Golem)";
-                } else if(selectedCard === "The Flaming Spittoon") {
-                    logAction("Spittoon triggered! 4 damage dealt to target minion zone.");
-                }
+                document.getElementById("act-title").innerText = `Act II: Realm Conquest (Round ${currentRound}/${MAX_ROUNDS})`;
             }
 
-            updateStats();
+            // Update Scoreboard table
+            const tbody = document.getElementById("scoreboard-body");
+            tbody.innerHTML = activePlayersState.map((p, idx) => `
+                <tr ${p.isEliminated ? 'style="opacity: 0.4; text-decoration: line-through;"' : ''}>
+                    <td><strong>${p.name}</strong> ${idx === activeTurnIndex ? '👑 (Turn)' : ''}</td>
+                    <td>${p.character}</td>
+                    <td>#${p.targetNumber}</td>
+                    <td>${p.hp} HP</td>
+                </tr>
+            `).join('');
 
-            if(playerHP <= 0) {
-                logAction("GAME OVER: Warlord health depleted to 0.");
-                alert("Match Over! Warlord health reached zero.");
+            // Set current turn heading
+            while(activePlayersState[activeTurnIndex].isEliminated) {
+                activeTurnIndex = (activeTurnIndex + 1) % activePlayersState.length;
             }
+            let activeP = activePlayersState[activeTurnIndex];
+            document.getElementById("current-turn-heading").innerText = `${activeP.name}'s Turn (${activeP.character})`;
         }
 
-        function resetMatch() {
-            playerHP = 20;
-            currentMana = 2;
-            activeShield = "None";
-            document.getElementById('logBox').innerHTML = "[System] Match reset. Warlord HP restored to 20.<br>";
-            updateStats();
+        function submitTurn() {
+            let scoreInput = parseInt(document.getElementById("turn-score-input").value) || 0;
+            let hitTarget = document.getElementById("hit-target-checkbox").checked;
+            let activeP = activePlayersState[activeTurnIndex];
+            const logger = document.getElementById("game-logger");
+
+            let damageDealt = Math.floor(scoreInput / 3); // Convert score into impact damage
+            if (currentRound >= 5) damageDealt *= 2; // Crisis modifier
+
+            if (hitTarget) {
+                damageDealt += 15; // Bonus for hitting character target number
+                logger.innerHTML += `🎯 <strong>${activeP.name}</strong> hit their sacred target #${activeP.targetNumber}! Bonus impact!<br>`;
+            }
+
+            // Apply damage to the next available opponent
+            let targetIndex = (activeTurnIndex + 1) % activePlayersState.length;
+            while(activePlayersState[targetIndex].isEliminated && targetIndex !== activeTurnIndex) {
+                targetIndex = (targetIndex + 1) % activePlayersState.length;
+            }
+
+            let targetP = activePlayersState[targetIndex];
+            targetP.hp -= damageDealt;
+            
+            logger.innerHTML += `⚔️ ${activeP.name} deals <strong>${damageDealt}</strong> damage to ${targetP.name}! (${targetP.name} HP: ${Math.max(0, targetP.hp)})<br>`;
+
+            if (targetP.hp <= 0) {
+                targetP.hp = 0;
+                targetP.isEliminated = true;
+                logger.innerHTML += `💀 <strong>${targetP.name}</strong> has fallen in battle!<br>`;
+            }
+
+            logger.scrollTop = logger.scrollHeight;
+
+            // Advance Turn & Check Round progression
+            activeTurnIndex = (activeTurnIndex + 1) % activePlayersState.length;
+            if (activeTurnIndex === 0) {
+                currentRound++;
+            }
+
+            // Reset input UI and loop back
+            document.getElementById("hit-target-checkbox").checked = false;
+            updateConquestUI();
         }
 
-        window.onload = initApp;
+        function triggerFinale(survivors) {
+            document.getElementById("screen-conquest").classList.add("hidden");
+            document.getElementById("screen-finale").classList.remove("hidden");
+
+            let winner = survivors.length > 0 ? survivors[0] : activePlayersState[0];
+            document.getElementById("finale-winner-banner").innerHTML = `
+                🏆 <strong>${winner.name}</strong> playing as <strong>${winner.character}</strong> has conquered Redlarovia!<br>
+                <span style="color:var(--text-muted); font-size:1rem;">The realm is saved within the 20-30 minute prophecy.</span>
+            `;
+        }
     </script>
 </body>
 </html>
