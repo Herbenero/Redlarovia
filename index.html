@@ -332,42 +332,94 @@ function startDraft() {
         }
 
         function updateConquestUI() {
-            // Check round pacing limit or player survival
-            let alivePlayers = activePlayersState.filter(p => !p.isEliminated);
-            if (alivePlayers.length <= 1 || currentRound > MAX_ROUNDS) {
-                triggerFinale(alivePlayers);
-                return;
-            }
+    let alivePlayers = activePlayersState.filter(p => !p.isEliminated);
+    if (alivePlayers.length <= 1 || currentRound > MAX_ROUNDS) {
+        triggerFinale(alivePlayers);
+        return;
+    }
 
-            // Handle Act III Crisis Round Trigger at Round 5
-            let crisisBanner = document.getElementById("crisis-banner");
-            let actTitle = document.getElementById("heading-act");
-            if (currentRound >= 5) {
-                document.getElementById("act-title").innerText = "Act III: Realm Crisis (Double Damage!)";
-                crisisBanner.innerHTML = `<span class="highlight-crisis">⚠️ REALM CRISIS ACTIVE: Bullseyes & attacks deal doubled wrath!</span>`;
-            } else {
-                document.getElementById("act-title").innerText = `Act II: Realm Conquest (Round ${currentRound}/${MAX_ROUNDS})`;
-            }
+    let crisisBanner = document.getElementById("crisis-banner");
+    if (currentRound >= 5) {
+        document.getElementById("act-title").innerText = "Act III: Realm Crisis (Double Damage!)";
+        crisisBanner.innerHTML = `<span class="highlight-crisis">⚠️ REALM CRISIS ACTIVE: Bullseyes & attacks deal doubled wrath!</span>`;
+    } else {
+        document.getElementById("act-title").innerText = `Act II: Realm Conquest (Round ${currentRound}/${MAX_ROUNDS})`;
+    }
 
-            // Update Scoreboard table
-            const tbody = document.getElementById("scoreboard-body");
-            tbody.innerHTML = activePlayersState.map((p, idx) => `
-                <tr ${p.isEliminated ? 'style="opacity: 0.4; text-decoration: line-through;"' : ''}>
-                    <td><strong>${p.name}</strong> ${idx === activeTurnIndex ? '👑 (Turn)' : ''}</td>
-                    <td>${p.character}</td>
-                    <td>#${p.targetNumber}</td>
-                    <td>${p.hp} HP</td>
-                </tr>
-            `).join('');
+    // Skip eliminated players for turn order
+    while(activePlayersState[activeTurnIndex].isEliminated) {
+        activeTurnIndex = (activeTurnIndex + 1) % activePlayersState.length;
+    }
 
-            // Set current turn heading
-            while(activePlayersState[activeTurnIndex].isEliminated) {
-                activeTurnIndex = (activeTurnIndex + 1) % activePlayersState.length;
-            }
-            let activeP = activePlayersState[activeTurnIndex];
-            document.getElementById("current-turn-heading").innerText = `${activeP.name}'s Turn (${activeP.character})`;
-        }
+    let activeP = activePlayersState[activeTurnIndex];
+    document.getElementById("current-turn-heading").innerText = `${activeP.name}'s Turn (${activeP.character})`;
 
+    // Update Scoreboard table
+    const tbody = document.getElementById("scoreboard-body");
+    tbody.innerHTML = activePlayersState.map((p, idx) => `
+        <tr ${p.isEliminated ? 'style="opacity: 0.4; text-decoration: line-through;"' : ''}>
+            <td><strong>${p.name}</strong> ${idx === activeTurnIndex ? '👑 (Turn)' : ''}</td>
+            <td>${p.character}</td>
+            <td>#${p.targetNumber}</td>
+            <td>${p.hp} HP</td>
+        </tr>
+    `).join('');
+
+    // IF IT'S AN A.I. PLAYER, AUTOMATE THEIR TURN AFTER A BRIEF PAUSE
+    if (activeP.isAi) {
+        document.getElementById("turn-score-input").disabled = true;
+        document.getElementById("hit-target-checkbox").disabled = true;
+        setTimeout(() => executeAiTurn(activeP), 1000); // 1-second delay for pacing
+    } else {
+        document.getElementById("turn-score-input").disabled = false;
+        document.getElementById("hit-target-checkbox").disabled = false;
+    }
+}
+
+function executeAiTurn(aiPlayer) {
+    const logger = document.getElementById("game-logger");
+    
+    // A.I. has 40% accuracy: 
+    // 40% chance to score well and hit their target, 60% chance to throw a low/missed score.
+    let hitTargetRoll = Math.random() < aiPlayer.accuracy;
+    let baseScoreRoll = hitTargetRoll ? Math.floor(Math.random() * 60) + 40 : Math.floor(Math.random() * 30);
+    
+    let damageDealt = Math.floor(baseScoreRoll / 3);
+    if (currentRound >= 5) damageDealt *= 2;
+
+    if (hitTargetRoll) {
+        damageDealt += 15;
+        logger.innerHTML += `🎯 <strong>${aiPlayer.name}</strong> landed a sharp strike and hit their target #${aiPlayer.targetNumber}!<br>`;
+    } else {
+讷    logger.innerHTML += `💨 ${aiPlayer.name}'s throw went wide, resulting in a weak blow.<br>`;
+    }
+
+    // Target the next available opponent
+    let targetIndex = (activeTurnIndex + 1) % activePlayersState.length;
+    while(activePlayersState[targetIndex].isEliminated && targetIndex !== activeTurnIndex) {
+        targetIndex = (targetIndex + 1) % activePlayersState.length;
+    }
+
+    let targetP = activePlayersState[targetIndex];
+    targetP.hp -= damageDealt;
+    logger.innerHTML += `⚔️ ${aiPlayer.name} deals <strong>${damageDealt}</strong> damage to ${targetP.name}! (${targetP.name} HP: ${Math.max(0, targetP.hp)})<br>`;
+
+    if (targetP.hp <= 0) {
+        targetP.hp = 0;
+        targetP.isEliminated = true;
+        logger.innerHTML += `💀 <strong>${targetP.name}</strong> has fallen to the A.I. wrath!<br>`;
+    }
+
+    logger.scrollTop = logger.scrollHeight;
+
+    // Advance Turn
+    activeTurnIndex = (activeTurnIndex + 1) % activePlayersState.length;
+    if (activeTurnIndex === 0) {
+        currentRound++;
+    }
+
+    updateConquestUI();
+}
         function submitTurn() {
             let scoreInput = parseInt(document.getElementById("turn-score-input").value) || 0;
             let hitTarget = document.getElementById("hit-target-checkbox").checked;
