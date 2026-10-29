@@ -65,7 +65,7 @@
             background-color: #f3c653;
         }
 
-        input {
+        input, select {
             padding: 8px;
             background: #111;
             border: 1px solid var(--accent-gold);
@@ -79,7 +79,6 @@
             margin: 15px 0;
         }
 
-        /* Act Layouts */
         .card-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
@@ -121,7 +120,7 @@
             background: #111;
             border: 1px dashed var(--text-muted);
             padding: 10px;
-            height: 120px;
+            height: 140px;
             overflow-y: auto;
             font-family: monospace;
             font-size: 0.9rem;
@@ -134,6 +133,14 @@
             color: #ff4d4d;
             font-weight: bold;
         }
+
+        .dart-throw-group {
+            background: #1e1813;
+            padding: 10px;
+            margin: 5px 0;
+            border-radius: 4px;
+            border: 1px solid #3b3026;
+        }
     </style>
 </head>
 <body>
@@ -145,7 +152,7 @@
         <!-- SETUP SCREEN -->
         <div id="screen-setup">
             <h2>Enter Adventurers</h2>
-            <p>Add 2 to 4 players to enter the realm:</p>
+            <p>Add up to 20 players (empty slots will be filled with A.I. bots at 40% accuracy):</p>
             <div style="text-align: center;">
                 <input type="text" id="player-input" placeholder="Player Name">
                 <button onclick="addPlayer()">Add Player</button>
@@ -185,11 +192,63 @@
 
             <div style="background: #231b14; padding: 15px; border-radius: 6px; border: 1px solid var(--accent-gold);">
                 <h3 id="current-turn-heading" style="margin-top: 0;"></h3>
-                <p>Simulate this player's 3-dart turn:</p>
-                <div style="text-align: center;">
-                    <label>Total Dart Score Thrown: <input type="number" id="turn-score-input" value="45" min="0" max="180" style="width: 80px;"></label>
-                    <label style="margin-left: 10px;"><input type="checkbox" id="hit-target-checkbox"> Hit Target Number / Double / Triple?</label>
-                    <br><br>
+                <p>Log your 3 darts thrown this turn:</p>
+                
+                <!-- Dart 1 -->
+                <div class="dart-throw-group">
+                    Dart 1: 
+                    <select id="d1-multiplier">
+                        <option value="1">Single</option>
+                        <option value="2">Double (x2)</option>
+                        <option value="3">Triple (x3)</option>
+                    </select>
+                    <select id="d1-number">
+                        <option value="0">Miss / 0</option>
+                        <script>
+                            for(let i=1; i<=20; i++) document.write(`<option value="${i}">${i}</option>`);
+                        </script>
+                        <option value="25">Outer Bull (25)</option>
+                        <option value="50">Inner Bull (50)</option>
+                    </select>
+                </div>
+
+                <!-- Dart 2 -->
+                <div class="dart-throw-group">
+                    Dart 2: 
+                    <select id="d2-multiplier">
+                        <option value="1">Single</option>
+                        <option value="2">Double (x2)</option>
+                        <option value="3">Triple (x3)</option>
+                    </select>
+                    <select id="d2-number">
+                        <option value="0">Miss / 0</option>
+                        <script>
+                            for(let i=1; i<=20; i++) document.write(`<option value="${i}">${i}</option>`);
+                        </script>
+                        <option value="25">Outer Bull (25)</option>
+                        <option value="50">Inner Bull (50)</option>
+                    </select>
+                </div>
+
+                <!-- Dart 3 -->
+                <div class="dart-throw-group">
+                    Dart 3: 
+                    <select id="d3-multiplier">
+                        <option value="1">Single</option>
+                        <option value="2">Double (x2)</option>
+                        <option value="3">Triple (x3)</option>
+                    </select>
+                    <select id="d3-number">
+                        <option value="0">Miss / 0</option>
+                        <script>
+                            for(let i=1; i<=20; i++) document.write(`<option value="${i}">${i}</option>`);
+                        </script>
+                        <option value="25">Outer Bull (25)</option>
+                        <option value="50">Inner Bull (50)</option>
+                    </select>
+                </div>
+
+                <div style="text-align: center; margin-top: 15px;">
                     <button onclick="submitTurn()">Resolve Turn</button>
                 </div>
             </div>
@@ -209,16 +268,15 @@
     </div>
 
     <script>
-        // Master Roster of 20 Characters
         const masterCharacterRoster = [
             { name: "King Redlar", role: "Sovereign Tank", ability: "+50 starting health", bonusHp: 50 },
-            { name: "Queen B", role: "Battle Monarch", ability: "+10 damage if hitting doubles", extraDmg: 10 },
+            { name: "Queen B", role: "Battle Monarch", ability: "+10 damage if hitting doubles", extraDmg: true },
             { name: "Pope Asshole", role: "High Cleric", ability: "+5 HP regeneration per round", regen: 5 },
             { name: "Strega the Rogue", role: "Cutthroat", ability: "Rethrow missed darts" },
             { name: "Ranger", role: "Precision Tracker", ability: "Miss board once = 1.5x damage on rest" },
             { name: "Warlock", role: "Pact Magic User", ability: "Sacrifice 20 HP to drain target" },
             { name: "Bulwark the Berserker", role: "Frenzied Marauder", ability: "All 3 outer single = double damage" },
-            { name: "Necromancer", role: "Dark Sorcerer", ability: "Steals 5 HP when hitting triples" },
+            { name: "Necromancer", role: "Dark Sorcerer", ability: "Steals 5 HP when hitting triples", stealHp: true },
             { name: "Jester", role: "Wildcard Trickster", ability: "Hitting 1 reverses turn order" },
             { name: "Dwarf", role: "Mountain Fighter", ability: "Numbers 1-7 grant +5 bonus damage" },
             { name: "Assassin", role: "Shadow Stalker", ability: "Bullseye final dart bypasses defense" },
@@ -237,7 +295,7 @@
         let activePlayersState = [];
         let currentRound = 1;
         let activeTurnIndex = 0;
-        const MAX_ROUNDS = 7; // Keeps game tightly paced to 20-30 mins
+        const MAX_ROUNDS = 7; 
 
         function shuffleArray(array) {
             let currentIndex = array.length, randomIndex;
@@ -249,82 +307,76 @@
             return array;
         }
 
-        // --- UPDATED SETUP & AI LOGIC ---
-
-function addPlayer() {
-    const input = document.getElementById("player-input");
-    const name = input.value.trim();
-    if(name && !playersInputNames.includes(name)) {
-        if(playersInputNames.length >= 20) {
-            alert("Redlarovia can hold a maximum of 20 adventurers!");
-            return;
+        function addPlayer() {
+            const input = document.getElementById("player-input");
+            const name = input.value.trim();
+            if(name && !playersInputNames.includes(name)) {
+                if(playersInputNames.length >= 20) {
+                    alert("Redlarovia can hold a maximum of 20 adventurers!");
+                    return;
+                }
+                playersInputNames.push(name);
+                input.value = "";
+                updatePlayerListUI();
+            }
         }
-        playersInputNames.push(name);
-        input.value = "";
-        updatePlayerListUI();
-    }
-}
 
-function updatePlayerListUI() {
-    const listDiv = document.getElementById("player-list-display");
-    listDiv.innerHTML = playersInputNames.map(p => `<span style="background:#3b3026; padding:5px 10px; margin:5px; display:inline-block; border-radius:4px;">⚔️ ${p}</span>`).join('');
-    
-    // Enable start button if at least 1 human player is ready
-    if(playersInputNames.length >= 1) {
-        document.getElementById("start-btn").classList.remove("hidden");
-        document.getElementById("start-btn").innerText = playersInputNames.length < 20 ? 
-            `Begin Draft & Fill Rest with A.I. (${20 - playersInputNames.length} Slots)` : 
-            `Begin Tavern Draft (Act I)`;
-    } else {
-        document.getElementById("start-btn").classList.add("hidden");
-    }
-}
+        function updatePlayerListUI() {
+            const listDiv = document.getElementById("player-list-display");
+            listDiv.innerHTML = playersInputNames.map(p => `<span style="background:#3b3026; padding:5px 10px; margin:5px; display:inline-block; border-radius:4px;">⚔️ ${p}</span>`).join('');
+            
+            if(playersInputNames.length >= 1) {
+                document.getElementById("start-btn").classList.remove("hidden");
+                document.getElementById("start-btn").innerText = playersInputNames.length < 20 ? 
+                    `Begin Draft & Fill Rest with A.I. (${20 - playersInputNames.length} Slots)` : 
+                    `Begin Tavern Draft (Act I)`;
+            } else {
+                document.getElementById("start-btn").classList.add("hidden");
+            }
+        }
 
-function startDraft() {
-    let shuffledRoster = shuffleArray([...masterCharacterRoster]);
-    let availableNumbers = shuffleArray([...Array(20).keys()].map(x => x + 1)); 
+        function startDraft() {
+            let shuffledRoster = shuffleArray([...masterCharacterRoster]);
+            let availableNumbers = shuffleArray([...Array(20).keys()].map(x => x + 1)); 
 
-    let finalLobby = [...playersInputNames];
+            let finalLobby = [...playersInputNames];
+            let aiCounter = 1;
+            while(finalLobby.length < 20) {
+                finalLobby.push(`🤖 A.I. Bot ${aiCounter++}`);
+            }
 
-    // If less than 20 players, automatically fill the remaining slots with A.I. players (40% Accuracy)
-    let aiCounter = 1;
-    while(finalLobby.length < 20) {
-        finalLobby.push(`🤖 A.I. Bot ${aiCounter++} (40% Acc)`);
-    }
+            activePlayersState = finalLobby.map((name, index) => {
+                let char = shuffledRoster[index];
+                let baseHp = 300 + (char.bonusHp || 0);
+                let isAi = name.includes("🤖");
+                return {
+                    name: name,
+                    character: char.name,
+                    role: char.role,
+                    ability: char.ability,
+                    targetNumber: availableNumbers[index],
+                    hp: baseHp,
+                    maxHp: baseHp,
+                    isEliminated: false,
+                    isAi: isAi,
+                    accuracy: isAi ? 0.40 : 1.0
+                };
+            });
 
-    activePlayersState = finalLobby.map((name, index) => {
-        let char = shuffledRoster[index];
-        let baseHp = 300 + (char.bonusHp || 0);
-        let isAi = name.includes("🤖");
-        
-        return {
-            name: name,
-            character: char.name,
-            role: char.role,
-            ability: char.ability,
-            targetNumber: availableNumbers[index],
-            hp: baseHp,
-            maxHp: baseHp,
-            isEliminated: false,
-            isAi: isAi,
-            accuracy: isAi ? 0.40 : 1.0 // 40% accuracy modifier for A.I.
-        };
-    });
+            const draftGrid = document.getElementById("draft-results");
+            draftGrid.innerHTML = activePlayersState.map(p => `
+                <div class="character-card" ${p.isAi ? 'style="border-color: #555; background: #161412;"' : ''}>
+                    <h4>${p.name}</h4>
+                    <p><strong>Champion:</strong> ${p.character} (${p.role})</p>
+                    <p style="color:var(--accent-gold); font-size:0.85rem;">Dart Target: #${p.targetNumber}</p>
+                    <p style="font-size:0.80rem; color:var(--text-muted);">${p.ability}</p>
+                </div>
+            `).join('');
 
-    // Render Act I Draft Screen
-    const draftGrid = document.getElementById("draft-results");
-    draftGrid.innerHTML = activePlayersState.map(p => `
-        <div class="character-card" ${p.isAi ? 'style="border-color: #555; background: #161412;"' : ''}>
-            <h4>${p.name}</h4>
-            <p><strong>Champion:</strong> ${p.character} (${p.role})</p>
-            <p style="color:var(--accent-gold); font-size:0.85rem;">Dart Target: #${p.targetNumber}</p>
-            <p style="font-size:0.8rem; color:var(--text-muted);">${p.ability}</p>
-        </div>
-    `).join('');
+            document.getElementById("screen-setup").classList.add("hidden");
+            document.getElementById("screen-draft").classList.remove("hidden");
+        }
 
-    document.getElementById("screen-setup").classList.add("hidden");
-    document.getElementById("screen-draft").classList.remove("hidden");
-}
         function startConquest() {
             document.getElementById("screen-draft").classList.add("hidden");
             document.getElementById("screen-conquest").classList.remove("hidden");
@@ -332,109 +384,84 @@ function startDraft() {
         }
 
         function updateConquestUI() {
-    let alivePlayers = activePlayersState.filter(p => !p.isEliminated);
-    if (alivePlayers.length <= 1 || currentRound > MAX_ROUNDS) {
-        triggerFinale(alivePlayers);
-        return;
-    }
-
-    let crisisBanner = document.getElementById("crisis-banner");
-    if (currentRound >= 5) {
-        document.getElementById("act-title").innerText = "Act III: Realm Crisis (Double Damage!)";
-        crisisBanner.innerHTML = `<span class="highlight-crisis">⚠️ REALM CRISIS ACTIVE: Bullseyes & attacks deal doubled wrath!</span>`;
-    } else {
-        document.getElementById("act-title").innerText = `Act II: Realm Conquest (Round ${currentRound}/${MAX_ROUNDS})`;
-    }
-
-    // Skip eliminated players for turn order
-    while(activePlayersState[activeTurnIndex].isEliminated) {
-        activeTurnIndex = (activeTurnIndex + 1) % activePlayersState.length;
-    }
-
-    let activeP = activePlayersState[activeTurnIndex];
-    document.getElementById("current-turn-heading").innerText = `${activeP.name}'s Turn (${activeP.character})`;
-
-    // Update Scoreboard table
-    const tbody = document.getElementById("scoreboard-body");
-    tbody.innerHTML = activePlayersState.map((p, idx) => `
-        <tr ${p.isEliminated ? 'style="opacity: 0.4; text-decoration: line-through;"' : ''}>
-            <td><strong>${p.name}</strong> ${idx === activeTurnIndex ? '👑 (Turn)' : ''}</td>
-            <td>${p.character}</td>
-            <td>#${p.targetNumber}</td>
-            <td>${p.hp} HP</td>
-        </tr>
-    `).join('');
-
-    // IF IT'S AN A.I. PLAYER, AUTOMATE THEIR TURN AFTER A BRIEF PAUSE
-    if (activeP.isAi) {
-        document.getElementById("turn-score-input").disabled = true;
-        document.getElementById("hit-target-checkbox").disabled = true;
-        setTimeout(() => executeAiTurn(activeP), 1000); // 1-second delay for pacing
-    } else {
-        document.getElementById("turn-score-input").disabled = false;
-        document.getElementById("hit-target-checkbox").disabled = false;
-    }
-}
-
-function executeAiTurn(aiPlayer) {
-    const logger = document.getElementById("game-logger");
-    
-    // A.I. has 40% accuracy: 
-    // 40% chance to score well and hit their target, 60% chance to throw a low/missed score.
-    let hitTargetRoll = Math.random() < aiPlayer.accuracy;
-    let baseScoreRoll = hitTargetRoll ? Math.floor(Math.random() * 60) + 40 : Math.floor(Math.random() * 30);
-    
-    let damageDealt = Math.floor(baseScoreRoll / 3);
-    if (currentRound >= 5) damageDealt *= 2;
-
-    if (hitTargetRoll) {
-        damageDealt += 15;
-        logger.innerHTML += `🎯 <strong>${aiPlayer.name}</strong> landed a sharp strike and hit their target #${aiPlayer.targetNumber}!<br>`;
-    } else {
-讷    logger.innerHTML += `💨 ${aiPlayer.name}'s throw went wide, resulting in a weak blow.<br>`;
-    }
-
-    // Target the next available opponent
-    let targetIndex = (activeTurnIndex + 1) % activePlayersState.length;
-    while(activePlayersState[targetIndex].isEliminated && targetIndex !== activeTurnIndex) {
-        targetIndex = (targetIndex + 1) % activePlayersState.length;
-    }
-
-    let targetP = activePlayersState[targetIndex];
-    targetP.hp -= damageDealt;
-    logger.innerHTML += `⚔️ ${aiPlayer.name} deals <strong>${damageDealt}</strong> damage to ${targetP.name}! (${targetP.name} HP: ${Math.max(0, targetP.hp)})<br>`;
-
-    if (targetP.hp <= 0) {
-        targetP.hp = 0;
-        targetP.isEliminated = true;
-        logger.innerHTML += `💀 <strong>${targetP.name}</strong> has fallen to the A.I. wrath!<br>`;
-    }
-
-    logger.scrollTop = logger.scrollHeight;
-
-    // Advance Turn
-    activeTurnIndex = (activeTurnIndex + 1) % activePlayersState.length;
-    if (activeTurnIndex === 0) {
-        currentRound++;
-    }
-
-    updateConquestUI();
-}
-        function submitTurn() {
-            let scoreInput = parseInt(document.getElementById("turn-score-input").value) || 0;
-            let hitTarget = document.getElementById("hit-target-checkbox").checked;
-            let activeP = activePlayersState[activeTurnIndex];
-            const logger = document.getElementById("game-logger");
-
-            let damageDealt = Math.floor(scoreInput / 3); // Convert score into impact damage
-            if (currentRound >= 5) damageDealt *= 2; // Crisis modifier
-
-            if (hitTarget) {
-                damageDealt += 15; // Bonus for hitting character target number
-                logger.innerHTML += `🎯 <strong>${activeP.name}</strong> hit their sacred target #${activeP.targetNumber}! Bonus impact!<br>`;
+            let alivePlayers = activePlayersState.filter(p => !p.isEliminated);
+            if (alivePlayers.length <= 1 || currentRound > MAX_ROUNDS) {
+                triggerFinale(alivePlayers);
+                return;
             }
 
-            // Apply damage to the next available opponent
+            let crisisBanner = document.getElementById("crisis-banner");
+            if (currentRound >= 5) {
+                document.getElementById("act-title").innerText = "Act III: Realm Crisis (Double Damage!)";
+                crisisBanner.innerHTML = `<span class="highlight-crisis">⚠️ REALM CRISIS ACTIVE: Attacks deal doubled wrath!</span>`;
+            } else {
+                document.getElementById("act-title").innerText = `Act II: Realm Conquest (Round ${currentRound}/${MAX_ROUNDS})`;
+            }
+
+            while(activePlayersState[activeTurnIndex].isEliminated) {
+                activeTurnIndex = (activeTurnIndex + 1) % activePlayersState.length;
+            }
+
+            let activeP = activePlayersState[activeTurnIndex];
+            document.getElementById("current-turn-heading").innerText = `${activeP.name}'s Turn (${activeP.character} - Target: #${activeP.targetNumber})`;
+
+            const tbody = document.getElementById("scoreboard-body");
+            tbody.innerHTML = activePlayersState.map((p, idx) => `
+                <tr ${p.isEliminated ? 'style="opacity: 0.4; text-decoration: line-through;"' : ''}>
+                    <td><strong>${p.name}</strong> ${idx === activeTurnIndex ? '👑 (Turn)' : ''}</td>
+                    <td>${p.character}</td>
+                    <td>#${p.targetNumber}</td>
+                    <td>${p.hp} HP</td>
+                </tr>
+            `).join('');
+
+            // Control input availability for AI vs Human
+            let throwControls = document.querySelectorAll(".dart-throw-group select");
+            if (activeP.isAi) {
+                throwControls.forEach(el => el.disabled = true);
+                setTimeout(() => executeAiTurn(activeP), 1000);
+            } else {
+                throwControls.forEach(el => el.disabled = false);
+            }
+        }
+
+        function processTurnShots(shots, activeP) {
+            const logger = document.getElementById("game-logger");
+            let totalTurnScore = 0;
+            let hitTargetCount = 0;
+            let hitDouble = false;
+            let hitTriple = false;
+
+            shots.forEach(shot => {
+                let shotPoints = shot.number * shot.multiplier;
+                totalTurnScore += shotPoints;
+
+                if (shot.number === activeP.targetNumber) {
+                    hitTargetCount++;
+                    if (shot.multiplier === 2) hitDouble = true;
+                    if (shot.multiplier === 3) hitTriple = true;
+                }
+            });
+
+            let damageDealt = Math.floor(totalTurnScore / 3);
+
+            // Character special perks triggered by real dart hits
+            if (hitTargetCount > 0) {
+                damageDealt += (hitTargetCount * 10);
+                logger.innerHTML += `🎯 <strong>${activeP.name}</strong> struck their sacred target #${activeP.targetNumber} ${hitTargetCount}x!<br>`;
+            }
+            if (activeP.character === "Queen B" && hitDouble) {
+                damageDealt += 15;
+                logger.innerHTML += `👑 Queen B triggers royal decree! Extra double damage dealt!<br>`;
+            }
+            if (activeP.character === "Necromancer" && hitTriple) {
+                activeP.hp += 10;
+                logger.innerHTML += `💀 Necromancer drains life force from a dark triple hit (+10 HP)!<br>`;
+            }
+
+            if (currentRound >= 5) damageDealt *= 2; // Crisis modifier
+
+            // Target the next available opponent
             let targetIndex = (activeTurnIndex + 1) % activePlayersState.length;
             while(activePlayersState[targetIndex].isEliminated && targetIndex !== activeTurnIndex) {
                 targetIndex = (targetIndex + 1) % activePlayersState.length;
@@ -442,8 +469,7 @@ function executeAiTurn(aiPlayer) {
 
             let targetP = activePlayersState[targetIndex];
             targetP.hp -= damageDealt;
-            
-            logger.innerHTML += `⚔️ ${activeP.name} deals <strong>${damageDealt}</strong> damage to ${targetP.name}! (${targetP.name} HP: ${Math.max(0, targetP.hp)})<br>`;
+            logger.innerHTML += `⚔️ ${activeP.name} deals <strong>${damageDealt}</strong> damage to ${targetP.name} (Score: ${totalTurnScore})! (${targetP.name} HP: ${Math.max(0, targetP.hp)})<br>`;
 
             if (targetP.hp <= 0) {
                 targetP.hp = 0;
@@ -453,15 +479,50 @@ function executeAiTurn(aiPlayer) {
 
             logger.scrollTop = logger.scrollHeight;
 
-            // Advance Turn & Check Round progression
+            // Advance turn & rounds
             activeTurnIndex = (activeTurnIndex + 1) % activePlayersState.length;
             if (activeTurnIndex === 0) {
                 currentRound++;
             }
-
-            // Reset input UI and loop back
-            document.getElementById("hit-target-checkbox").checked = false;
             updateConquestUI();
+        }
+
+        function submitTurn() {
+            let activeP = activePlayersState[activeTurnIndex];
+            
+            let shots = [
+                { multiplier: parseInt(document.getElementById("d1-multiplier").value), number: parseInt(document.getElementById("d1-number").value) },
+                { multiplier: parseInt(document.getElementById("d2-multiplier").value), number: parseInt(document.getElementById("d2-number").value) },
+                { multiplier: parseInt(document.getElementById("d3-multiplier").value), number: parseInt(document.getElementById("d3-number").value) }
+            ];
+
+            // Reset selects to default
+            document.getElementById("d1-multiplier").value = "1"; document.getElementById("d1-number").value = "0";
+            document.getElementById("d2-multiplier").value = "1"; document.getElementById("d2-number").value = "0";
+            document.getElementById("d3-multiplier").value = "1"; document.getElementById("d3-number").value = "0";
+
+            processTurnShots(shots, activeP);
+        }
+
+        function executeAiTurn(aiPlayer) {
+            // Simulated 40% accuracy bot throws
+            let shots = [];
+            for(let i = 0; i < 3; i++) {
+                let isAccurate = Math.random() < aiPlayer.accuracy;
+                let mult = 1;
+                let num = 0;
+
+                if (isAccurate) {
+                    num = aiPlayer.targetNumber;
+                    mult = Math.random() < 0.2 ? 2 : 1; // 20% chance bot hits double/single on target
+                } else {
+                    num = Math.floor(Math.random() * 20) + 1; // Random stray dart
+                    mult = 1;
+                }
+                shots.push({ multiplier: mult, number: num });
+            }
+
+            processTurnShots(shots, aiPlayer);
         }
 
         function triggerFinale(survivors) {
