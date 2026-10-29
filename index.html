@@ -299,27 +299,27 @@
 
     <script>
         const masterCharacterRoster = [
-            { name: "King Redlar", role: "Sovereign Tank", ability: "+50 starting health", bonusHp: 50 },
-            { name: "Queen B", role: "Battle Monarch", ability: "+10 damage if hitting doubles" },
-            { name: "Pope Asshole", role: "High Cleric", ability: "+5 HP regeneration per round" },
-            { name: "Strega the Rogue", role: "Cutthroat", ability: "Rethrow one missed dart per game (Converts one 0-score to +10)" },
-            { name: "Ranger", role: "Precision Tracker", ability: "Miss board once = 1.5x damage on rest" },
-            { name: "Warlock", role: "Pact Magic User", ability: "Sacrifice 20 HP to deal 25 direct damage once per game" },
-            { name: "Bulwark the Berserker", role: "Frenzied Marauder", ability: "All 3 outer singles = double damage, but take 10 self-damage" },
-            { name: "Necromancer", role: "Dark Sorcerer", ability: "Steals 10 HP when hitting triples" },
-            { name: "Jester", role: "Wildcard Trickster", ability: "Hitting 1 reverses turn order for next round" },
-            { name: "Dwarf", role: "Mountain Fighter", ability: "Numbers 1-7 grant +5 bonus damage whenever hit" },
-            { name: "Assassin", role: "Shadow Stalker", ability: "Final dart Bullseye bypasses defense for +25 damage" },
-            { name: "Knight", role: "Heavy Armored Guard", ability: "Takes 5 less damage from all attacks" },
-            { name: "Wizard", role: "Elementalist", ability: "Inner single ring adds +15 magical burn damage" },
-            { name: "Paladin", role: "Holy Crusader", ability: "Hitting a double reduces incoming damage next round by 10" },
-            { name: "Druid", role: "Nature Shaman", ability: "Score 10, 11, and 12 in one turn to heal 30 health" },
-            { name: "Barbarian", role: "Rage Warrior", ability: "Below 100 HP, all single hits count as double points" },
-            { name: "Bard", role: "Minstrel", ability: "Generates +5 passive health at start of turn" },
-            { name: "Monk", role: "Martial Artist", ability: "Turn total multiple of 10 grants +20 defense" },
-            { name: "Thief", role: "Pickpocket", ability: "Hitting triple 3 steals 10 health from target" },
-            { name: "Alchemist", role: "Potion Brewer", ability: "Turn a missed dart into flat 20 points once per game" }
-        ];
+    { name: "King Redlar", role: "Sovereign Tank", ability: "+50 starting health", bonusHp: 50, img: "Redlar.png" },
+    { name: "Queen B", role: "Battle Monarch", ability: "+10 damage if hitting doubles", img: "QueenB.png" },
+    { name: "Pope Asshole", role: "High Cleric", ability: "+5 HP regeneration per round", img: "Pope.png" },
+    { name: "The Rogue", role: "Cutthroat", ability: "Rethrow one missed dart per game", img: "Rogue.png" },
+    { name: "Ranger", role: "Precision Tracker", ability: "Miss board once = 1.5x damage on rest", img: "Ranger.png" },
+    { name: "Warlock", role: "Pact Magic User", ability: "Sacrifice 20 HP to deal 25 direct damage", img: "Warlock.png" },
+    { name: "Bulwark the Berserker", role: "Frenzied Marauder", ability: "All 3 outer singles = double damage", img: "Berserker.png" },
+    { name: "Necromancer", role: "Dark Sorcerer", ability: "Steals 10 HP when hitting triples", img: "Necromancer.png" },
+    { name: "Jester", role: "Wildcard Trickster", ability: "Hitting 1 reverses turn order", img: "Jester.png" },
+    { name: "Dwarf", role: "Mountain Fighter", ability: "Numbers 1-7 grant +5 bonus damage", img: "Dwarf.png" },
+    { name: "Assassin", role: "Shadow Stalker", ability: "Final dart Bullseye bypasses defense", img: "Assassin.png" },
+    { name: "Knight", role: "Heavy Armored Guard", ability: "Takes 5 less damage from all attacks", img: "Knight.png" },
+    { name: "Wizard", role: "Elementalist", ability: "Inner single ring adds +15 magical burn", img: "Wizard.png" },
+    { name: "Paladin", role: "Holy Crusader", ability: "Hitting a double reduces incoming damage", img: "Paladin.png" },
+    { name: "Druid", role: "Nature Shaman", ability: "Score 10, 11, and 12 to heal 30 health", img: "Druid.png" },
+    { name: "Barbarian", role: "Rage Warrior", ability: "Below 100 HP, single hits count as double", img: "Barbarian.png" },
+    { name: "Bard", role: "Minstrel", ability: "Generates +5 passive health at start of turn", img: "Bard.png" },
+    { name: "Monk", role: "Martial Artist", ability: "Turn total multiple of 10 grants +20 defense", img: "Monk.png" },
+    { name: "Thief", role: "Pickpocket", ability: "Hitting triple 3 steals 10 health", img: "Thief.png" },
+    { name: "Alchemist", role: "Potion Brewer", ability: "Turn missed dart into 20 points once", img: "Alchemist.png" }
+];
 
         const medievalAiNames = [
             "Sir Bot-A-Lot", "Erowyn the Greybot", "Gears-A-Lot", "Lady Circuit", 
@@ -740,16 +740,20 @@
             alert("📜 REDLAROVIA DAMAGE GUIDE:\n\n1. BASE DAMAGE: Your 3-dart total score is divided by 3 (e.g., scoring 60 gives 20 base damage).\n\n2. TARGET BONUS: Hitting your character's sacred Target Number adds +10 flat damage per hit!\n\n3. ABILITIES: All 20 character abilities (Wizard burns, Assassin crits, Druid heals, Warlock sacrifices, etc.) are fully automated!\n\n4. REALM CRISIS: From Round 5 onwards, all final damage values are DOUBLED!");
         }
 
-        function triggerFinale(survivors) {
-            document.getElementById("screen-conquest").classList.add("hidden");
-            document.getElementById("screen-finale").classList.remove("hidden");
+       function triggerFinale(survivors) {
+    document.getElementById("screen-conquest").classList.add("hidden");
+    document.getElementById("screen-finale").classList.remove("hidden");
 
-            let winner = survivors.length > 0 ? survivors[0] : activePlayersState[0];
-            document.getElementById("finale-winner-banner").innerHTML = `
-                🏆 <strong>${winner.name}</strong> playing as <strong>${winner.character}</strong> has conquered Redlarovia!<br>
-                <span style="color:var(--text-muted); font-size:1rem;">The realm is saved within the 20-30 minute prophecy.</span>
-            `;
-        }
+    let winner = survivors.length > 0 ? survivors[0] : activePlayersState[0];
+    
+    document.getElementById("finale-winner-banner").innerHTML = `
+        <div style="margin-bottom: 15px;">
+            <img src="${winner.img || 'Redlar.png'}" alt="${winner.character}" style="width: 120px; height: 120px; border-radius: 50%; border: 3px solid var(--accent-gold); object-fit: cover; box-shadow: 0 4px 10px rgba(0,0,0,0.8);">
+        </div>
+        🏆 <strong>${winner.name}</strong> playing as <strong>${winner.character}</strong> has conquered Redlarovia!<br>
+        <span style="color:var(--text-muted); font-size:1rem;">The realm is saved within the 20-30 minute prophecy.</span>
+    `;
+}
     </script>
 </body>
 </html>
