@@ -212,15 +212,11 @@
 
             <div style="background: #231b14; padding: 15px; border-radius: 6px; border: 1px solid var(--accent-gold); position: relative;">
                 
-                <!-- Damage Explanation Guide Button -->
                 <button onclick="openDamageGuide()" style="position: absolute; top: 15px; right: 15px; background: #3b3026; color: var(--accent-gold); font-size: 0.8rem; padding: 5px 10px;">📜 Damage Guide</button>
 
                 <h3 id="current-turn-heading" style="margin-top: 0; text-align: left; padding-right: 100px;"></h3>
-                
-                <!-- Character Ability Displayed Right Here -->
                 <div id="current-turn-ability" class="ability-box"></div>
 
-                <!-- Manual Target Selection Dropdown -->
                 <div style="background: #1e1813; padding: 10px; margin: 10px 0; border-radius: 4px; border: 1px solid #3b3026;">
                     <label for="target-player-select"><strong>⚔️ Choose Target Opponent:</strong></label>
                     <select id="target-player-select" style="width: 100%; margin-top: 5px;"></select>
@@ -304,25 +300,25 @@
     <script>
         const masterCharacterRoster = [
             { name: "King Redlar", role: "Sovereign Tank", ability: "+50 starting health", bonusHp: 50 },
-            { name: "Queen B", role: "Battle Monarch", ability: "+10 damage if hitting doubles", extraDmg: true },
-            { name: "Pope Asshole", role: "High Cleric", ability: "+5 HP regeneration per round", regen: 5 },
-            { name: "Strega the Rogue", role: "Cutthroat", ability: "Rethrow missed darts" },
+            { name: "Queen B", role: "Battle Monarch", ability: "+10 damage if hitting doubles" },
+            { name: "Pope Asshole", role: "High Cleric", ability: "+5 HP regeneration per round" },
+            { name: "Strega the Rogue", role: "Cutthroat", ability: "Rethrow one missed dart per game (Converts one 0-score to +10)" },
             { name: "Ranger", role: "Precision Tracker", ability: "Miss board once = 1.5x damage on rest" },
-            { name: "Warlock", role: "Pact Magic User", ability: "Sacrifice 20 HP to drain target" },
-            { name: "Bulwark the Berserker", role: "Frenzied Marauder", ability: "All 3 outer single = double damage" },
-            { name: "Necromancer", role: "Dark Sorcerer", ability: "Steals 5 HP when hitting triples", stealHp: true },
-            { name: "Jester", role: "Wildcard Trickster", ability: "Hitting 1 reverses turn order" },
-            { name: "Dwarf", role: "Mountain Fighter", ability: "Numbers 1-7 grant +5 bonus damage" },
-            { name: "Assassin", role: "Shadow Stalker", ability: "Bullseye final dart bypasses defense" },
-            { name: "Knight", role: "Heavy Armored Guard", ability: "Takes 5 less damage each round" },
-            { name: "Wizard", role: "Elementalist", ability: "Inner single adds +15 burn damage" },
-            { name: "Paladin", role: "Holy Crusader", ability: "Doubles reduce incoming damage next round" },
-            { name: "Druid", role: "Nature Shaman", ability: "Score 10,11,12 in one turn to heal 30" },
-            { name: "Barbarian", role: "Rage Warrior", ability: "Below 100 HP, singles count as double" },
-            { name: "Bard", role: "Minstrel", ability: "Generates passive team health" },
-            { name: "Monk", role: "Martial Artist", ability: "Turn total multiple of 10 grants defense" },
-            { name: "Thief", role: "Pickpocket", ability: "Hitting triple 3 steals 10 points" },
-            { name: "Alchemist", role: "Potion Brewer", ability: "Turn a miss into flat 20 points once" }
+            { name: "Warlock", role: "Pact Magic User", ability: "Sacrifice 20 HP to deal 25 direct damage once per game" },
+            { name: "Bulwark the Berserker", role: "Frenzied Marauder", ability: "All 3 outer singles = double damage, but take 10 self-damage" },
+            { name: "Necromancer", role: "Dark Sorcerer", ability: "Steals 10 HP when hitting triples" },
+            { name: "Jester", role: "Wildcard Trickster", ability: "Hitting 1 reverses turn order for next round" },
+            { name: "Dwarf", role: "Mountain Fighter", ability: "Numbers 1-7 grant +5 bonus damage whenever hit" },
+            { name: "Assassin", role: "Shadow Stalker", ability: "Final dart Bullseye bypasses defense for +25 damage" },
+            { name: "Knight", role: "Heavy Armored Guard", ability: "Takes 5 less damage from all attacks" },
+            { name: "Wizard", role: "Elementalist", ability: "Inner single ring adds +15 magical burn damage" },
+            { name: "Paladin", role: "Holy Crusader", ability: "Hitting a double reduces incoming damage next round by 10" },
+            { name: "Druid", role: "Nature Shaman", ability: "Score 10, 11, and 12 in one turn to heal 30 health" },
+            { name: "Barbarian", role: "Rage Warrior", ability: "Below 100 HP, all single hits count as double points" },
+            { name: "Bard", role: "Minstrel", ability: "Generates +5 passive health at start of turn" },
+            { name: "Monk", role: "Martial Artist", ability: "Turn total multiple of 10 grants +20 defense" },
+            { name: "Thief", role: "Pickpocket", ability: "Hitting triple 3 steals 10 health from target" },
+            { name: "Alchemist", role: "Potion Brewer", ability: "Turn a missed dart into flat 20 points once per game" }
         ];
 
         const medievalAiNames = [
@@ -338,6 +334,7 @@
         let activePlayersState = [];
         let currentRound = 1;
         let activeTurnIndex = 0;
+        let turnOrderReversed = false;
         const MAX_ROUNDS = 7; 
 
         function shuffleArray(array) {
@@ -427,7 +424,10 @@
                     maxHp: baseHp,
                     isEliminated: false,
                     isAi: isAi,
-                    accuracy: isAi ? 0.40 : 1.0
+                    accuracy: isAi ? 0.40 : 1.0,
+                    abilityUsed: false,
+                    defenseShield: 0,
+                    incomingDmgReduction: 0
                 };
             });
 
@@ -467,12 +467,21 @@
             }
 
             while(activePlayersState[activeTurnIndex].isEliminated) {
-                activeTurnIndex = (activeTurnIndex + 1) % activePlayersState.length;
+                advanceTurnIndex();
             }
 
             let activeP = activePlayersState[activeTurnIndex];
-            
-            // Set Turn Heading and Ability Box Display
+
+            // Passive Turn-Start Ability Triggers
+            if (activeP.character === "Pope Asshole" && activeP.hp < activeP.maxHp) {
+                activeP.hp = Math.min(activeP.maxHp, activeP.hp + 5);
+                document.getElementById("game-logger").innerHTML += `✨ Pope Asshole regenerates +5 HP at turn start!<br>`;
+            }
+            if (activeP.character === "Bard") {
+                activeP.hp = Math.min(activeP.maxHp, activeP.hp + 5);
+                document.getElementById("game-logger").innerHTML += `🎶 Bard plays a tavern melody, generating +5 HP!<br>`;
+            }
+
             document.getElementById("current-turn-heading").innerText = `${activeP.name}'s Turn (${activeP.character} - Target: #${activeP.targetNumber})`;
             document.getElementById("current-turn-ability").innerHTML = `✨ <strong>Character Ability:</strong> ${activeP.ability}`;
 
@@ -490,7 +499,7 @@
                     <td><strong>${p.name}</strong> ${idx === activeTurnIndex ? '👑 (Turn)' : ''}</td>
                     <td>${p.character}</td>
                     <td>#${p.targetNumber}</td>
-                    <td>${p.hp} HP</td>
+                    <td>${p.hp} HP ${p.defenseShield > 0 ? `(🛡️ +${p.defenseShield})` : ''}</td>
                 </tr>
             `).join('');
 
@@ -515,54 +524,166 @@
             }
         }
 
+        function advanceTurnIndex() {
+            if (turnOrderReversed) {
+                activeTurnIndex = (activeTurnIndex - 1 + activePlayersState.length) % activePlayersState.length;
+            } else {
+                activeTurnIndex = (activeTurnIndex + 1) % activePlayersState.length;
+            }
+        }
+
         function processTurnShots(shots, activeP) {
             const logger = document.getElementById("game-logger");
             let totalTurnScore = 0;
             let hitTargetCount = 0;
             let hitDouble = false;
             let hitTriple = false;
+            let missCount = 0;
+            let innerSingleCount = 0;
+            let numbersHit = [];
 
-            shots.forEach(shot => {
-                let shotPoints = shot.number * shot.multiplier;
+            shots.forEach((shot, idx) => {
+                let currentNum = shot.number;
+                let currentMult = shot.multiplier;
+
+                // Strega Rogue & Alchemist ability overrides for misses (0)
+                if (currentNum === 0) {
+                    if (activeP.character === "Strega the Rogue" && !activeP.abilityUsed) {
+                        currentNum = 10; currentMult = 1;
+                        activeP.abilityUsed = true;
+                        logger.innerHTML += `🗡️ Strega rethrows a missed dart for a clean hit (+10 pts)!<br>`;
+                    } else if (activeP.character === "Alchemist" && !activeP.abilityUsed) {
+                        currentNum = 20; currentMult = 1;
+                        activeP.abilityUsed = true;
+                        logger.innerHTML += `🧪 Alchemist brews a potion to turn a miss into 20 points!<br>`;
+                    } else {
+                        missCount++;
+                    }
+                }
+
+                let shotPoints = currentNum * currentMult;
                 totalTurnScore += shotPoints;
+                numbersHit.push(currentNum);
 
-                if (shot.number === activeP.targetNumber) {
+                if (currentNum === activeP.targetNumber) {
                     hitTargetCount++;
-                    if (shot.multiplier === 2) hitDouble = true;
-                    if (shot.multiplier === 3) hitTriple = true;
+                    if (currentMult === 2) hitDouble = true;
+                    if (currentMult === 3) hitTriple = true;
+                }
+
+                // Wizard inner single check (simulated as single numbers 10-20)
+                if (activeP.character === "Wizard" && currentMult === 1 && currentNum >= 10 && currentNum <= 20) {
+                    innerSingleCount++;
                 }
             });
 
+            // Barbarian Rage (Below 100 HP, singles count as double)
+            if (activeP.character === "Barbarian" && activeP.hp < 100) {
+                totalTurnScore += totalTurnScore; // Double the raw score
+                logger.innerHTML += `🔥 Barbarian Rage surges! Singles count as double score!<br>`;
+            }
+
             let damageDealt = Math.floor(totalTurnScore / 3);
 
+            // Ranger Precision Tracker
+            if (activeP.character === "Ranger" && missCount >= 1) {
+                damageDealt = Math.floor(damageDealt * 1.5);
+                logger.innerHTML += `🏹 Ranger missed once, unleashing 1.5x damage on the rest!<br>`;
+            }
+
+            // Target Bonus
             if (hitTargetCount > 0) {
                 damageDealt += (hitTargetCount * 10);
-                logger.innerHTML += `🎯 <strong>${activeP.name}</strong> struck their sacred target #${activeP.targetNumber} ${hitTargetCount}x!<br>`;
+                logger.innerHTML += `🎯 <strong>${activeP.name}</strong> struck sacred target #${activeP.targetNumber} ${hitTargetCount}x! (+${hitTargetCount * 10} dmg)<br>`;
             }
+
+            // Character Specific Combos & Passives
             if (activeP.character === "Queen B" && hitDouble) {
                 damageDealt += 15;
-                logger.innerHTML += `👑 Queen B triggers royal decree! Extra double damage dealt!<br>`;
+                logger.innerHTML += `👑 Queen B Royal Decree grants +15 bonus double damage!<br>`;
             }
             if (activeP.character === "Necromancer" && hitTriple) {
-                activeP.hp += 10;
-                logger.innerHTML += `💀 Necromancer drains life force from a dark triple hit (+10 HP)!<br>`;
+                activeP.hp = Math.min(activeP.maxHp, activeP.hp + 10);
+                logger.innerHTML += `💀 Necromancer drains life force from a triple hit (+10 HP)!<br>`;
+            }
+            if (activeP.character === "Wizard" && innerSingleCount > 0) {
+                damageDealt += (innerSingleCount * 15);
+                logger.innerHTML += `⚡ Wizard channels inner elemental burn (+${innerSingleCount * 15} damage)!<br>`;
+            }
+            if (activeP.character === "Dwarf") {
+                let dwarfHits = numbersHit.filter(n => n >= 1 && n <= 7).length;
+                if (dwarfHits > 0) {
+                    damageDealt += (dwarfHits * 5);
+                    logger.innerHTML += `⛏️ Dwarf mountain strike hits low numbers for +${dwarfHits * 5} bonus damage!<br>`;
+                }
+            }
+            if (activeP.character === "Assassin") {
+                let lastDart = shots[2];
+                if (lastDart && (lastDart.number === 25 || lastDart.number === 50)) {
+                    damageDealt += 25;
+                    logger.innerHTML += `🥷 Assassin lands a lethal Bullseye, bypassing defense for +25 piercing damage!<br>`;
+                }
+            }
+            if (activeP.character === "Thief" && hitTriple && activeP.targetNumber === 3) {
+                // Handled in target health reduction
+                logger.innerHTML += `💰 Thief pickspocketed extra gold from a Triple 3!<br>`;
+            }
+            if (activeP.character === "Warlock" && !activeP.abilityUsed) {
+                activeP.hp -= 20;
+                damageDealt += 25;
+                activeP.abilityUsed = true;
+                logger.innerHTML += `🔮 Warlock sacrifices 20 HP of their own life force to deal 25 direct dark damage!<br>`;
+            }
+            if (activeP.character === "Jester" && numbersHit.includes(1)) {
+                turnOrderReversed = !turnOrderReversed;
+                logger.innerHTML += `🃏 Jester hits a 1! Turn order has been REVERSED!<br>`;
+            }
+            if (activeP.character === "Paladin" && hitDouble) {
+                activeP.incomingDmgReduction = 10;
+                logger.innerHTML += `🛡️ Paladin raises a Holy Barrier (-10 incoming damage next round)!<br>`;
+            }
+            if (activeP.character === "Druid" && numbersHit.includes(10) && numbersHit.includes(11) && numbersHit.includes(12)) {
+                activeP.hp = Math.min(activeP.maxHp, activeP.hp + 30);
+                logger.innerHTML += `🌿 Druid channels nature's harmony, healing for +30 HP!<br>`;
+            }
+            if (activeP.character === "Monk" && totalTurnScore % 10 === 0 && totalTurnScore > 0) {
+                activeP.defenseShield = 20;
+                logger.innerHTML += `🧘 Monk achieves perfect balance (Turn total multiple of 10) granting +20 defense shield!<br>`;
             }
 
             if (currentRound >= 5) damageDealt *= 2; 
 
+            // Select Target Opponent
             let selectedTargetIndex = parseInt(document.getElementById("target-player-select").value);
             let targetP = activePlayersState[selectedTargetIndex];
 
             if (!targetP || targetP.isEliminated) {
                 let targetIndex = (activeTurnIndex + 1) % activePlayersState.length;
                 while(activePlayersState[targetIndex].isEliminated && targetIndex !== activeTurnIndex) {
-                    targetIndex = (targetIndex + 1) % activePlayersState.length;
+                    targetIndex = (activeTurnIndex + 1) % activePlayersState.length;
                 }
                 targetP = activePlayersState[targetIndex];
             }
 
-            targetP.hp -= damageDealt;
-            logger.innerHTML += `⚔️ ${activeP.name} deals <strong>${damageDealt}</strong> damage to ${targetP.name} (Score: ${totalTurnScore})! (${targetP.name} HP: ${Math.max(0, targetP.hp)})<br>`;
+            // Apply target defenses / armor
+            let finalDmgToTarget = damageDealt;
+            if (targetP.character === "Knight") finalDmgToTarget = Math.max(0, finalDmgToTarget - 5);
+            if (targetP.incomingDmgReduction > 0) {
+                finalDmgToTarget = Math.max(0, finalDmgToTarget - targetP.incomingDmgReduction);
+                targetP.incomingDmgReduction = 0; // consume barrier
+            }
+            if (targetP.defenseShield > 0) {
+                if (targetP.defenseShield >= finalDmgToTarget) {
+                    targetP.defenseShield -= finalDmgToTarget;
+                    finalDmgToTarget = 0;
+                } else {
+                    finalDmgToTarget -= targetP.defenseShield;
+                    targetP.defenseShield = 0;
+                }
+            }
+
+            targetP.hp -= finalDmgToTarget;
+            logger.innerHTML += `⚔️ ${activeP.name} deals <strong>${finalDmgToTarget}</strong> damage to ${targetP.name} (Score: ${totalTurnScore})! (${targetP.name} HP: ${Math.max(0, targetP.hp)})<br>`;
 
             if (targetP.hp <= 0) {
                 targetP.hp = 0;
@@ -572,7 +693,7 @@
 
             logger.scrollTop = logger.scrollHeight;
 
-            activeTurnIndex = (activeTurnIndex + 1) % activePlayersState.length;
+            advanceTurnIndex();
             if (activeTurnIndex === 0) {
                 currentRound++;
             }
@@ -616,7 +737,7 @@
         }
 
         function openDamageGuide() {
-            alert("📜 REDLAROVIA DAMAGE GUIDE:\n\n1. BASE DAMAGE: Your 3-dart total score is divided by 3 (e.g., scoring 60 gives 20 base damage).\n\n2. TARGET BONUS: Hitting your character's sacred Target Number adds +10 flat damage per hit!\n\n3. ABILITIES: Certain classes trigger bonus effects on doubles, triples, or special rolls.\n\n4. REALM CRISIS: From Round 5 onwards, all final damage values are DOUBLED!");
+            alert("📜 REDLAROVIA DAMAGE GUIDE:\n\n1. BASE DAMAGE: Your 3-dart total score is divided by 3 (e.g., scoring 60 gives 20 base damage).\n\n2. TARGET BONUS: Hitting your character's sacred Target Number adds +10 flat damage per hit!\n\n3. ABILITIES: All 20 character abilities (Wizard burns, Assassin crits, Druid heals, Warlock sacrifices, etc.) are fully automated!\n\n4. REALM CRISIS: From Round 5 onwards, all final damage values are DOUBLED!");
         }
 
         function triggerFinale(survivors) {
