@@ -152,12 +152,22 @@
         <!-- SETUP SCREEN -->
         <div id="screen-setup">
             <h2>Enter Adventurers</h2>
-            <p>Add up to 20 players (empty slots will be filled with A.I. bots at 40% accuracy):</p>
+            <p>Add human players (up to 20) and choose how many A.I. bots (40% accuracy) to invite:</p>
+            
             <div style="text-align: center;">
                 <input type="text" id="player-input" placeholder="Player Name">
                 <button onclick="addPlayer()">Add Player</button>
             </div>
+            
             <div id="player-list-display" class="player-setup-list"></div>
+
+            <!-- A.I. BOT SELECTOR CONTROLS -->
+            <div id="ai-controls" class="hidden" style="background: #1e1813; padding: 12px; border-radius: 6px; border: 1px solid var(--text-muted); margin-top: 15px; text-align: center;">
+                <label for="ai-count-select"><strong>🤖 A.I. Bots to Add:</strong></label>
+                <select id="ai-count-select" onchange="updateStartButtonText()"></select>
+                <p id="total-party-label" style="font-size: 0.85rem; color: var(--text-muted); margin: 5px 0 0 0;"></p>
+            </div>
+
             <div style="text-align: center; margin-top: 20px;">
                 <button id="start-btn" onclick="startDraft()" class="hidden">Begin Tavern Draft (Act I)</button>
             </div>
@@ -166,7 +176,7 @@
         <!-- ACT I: DRAFT SCREEN -->
         <div id="screen-draft" class="hidden">
             <h2>Act I: The Tavern Draft</h2>
-            <p>The 20 characters have been randomly shuffled and assigned target dart numbers for this realm rotation!</p>
+            <p>The characters have been randomly shuffled and assigned target dart numbers for this realm rotation!</p>
             <div id="draft-results" class="card-grid"></div>
             <div style="text-align: center; margin-top: 20px;">
                 <button onclick="startConquest()">Enter Realm Conquest (Act II)</button>
@@ -312,7 +322,7 @@
             const name = input.value.trim();
             if(name && !playersInputNames.includes(name)) {
                 if(playersInputNames.length >= 20) {
-                    alert("Redlarovia can hold a maximum of 20 adventurers!");
+                    alert("Redlarovia can hold a maximum of 20 total participants!");
                     return;
                 }
                 playersInputNames.push(name);
@@ -325,25 +335,50 @@
             const listDiv = document.getElementById("player-list-display");
             listDiv.innerHTML = playersInputNames.map(p => `<span style="background:#3b3026; padding:5px 10px; margin:5px; display:inline-block; border-radius:4px;">⚔️ ${p}</span>`).join('');
             
+            const aiControls = document.getElementById("ai-controls");
+            const startBtn = document.getElementById("start-btn");
+
             if(playersInputNames.length >= 1) {
-                document.getElementById("start-btn").classList.remove("hidden");
-                document.getElementById("start-btn").innerText = playersInputNames.length < 20 ? 
-                    `Begin Draft & Fill Rest with A.I. (${20 - playersInputNames.length} Slots)` : 
-                    `Begin Tavern Draft (Act I)`;
+                aiControls.classList.remove("hidden");
+                startBtn.classList.remove("hidden");
+                
+                // Populate AI dropdown options based on available open slots (up to 20 total)
+                let maxPossibleBots = 20 - playersInputNames.length;
+                let aiSelect = document.getElementById("ai-count-select");
+                let currentSelected = parseInt(aiSelect.value) || 0;
+                
+                aiSelect.innerHTML = "";
+                for(let i = 0; i <= maxPossibleBots; i++) {
+                    let selectedAttr = (i === Math.min(currentSelected, maxPossibleBots)) ? "selected" : "";
+                    aiSelect.innerHTML += `<option value="${i}" ${selectedAttr}>${i} Bot${i === 1 ? '' : 's'}</option>`;
+                }
+                
+                updateStartButtonText();
             } else {
-                document.getElementById("start-btn").classList.add("hidden");
+                aiControls.classList.add("hidden");
+                startBtn.classList.add("hidden");
             }
         }
 
+        function updateStartButtonText() {
+            let aiCount = parseInt(document.getElementById("ai-count-select").value) || 0;
+            let totalPartySize = playersInputNames.length + aiCount;
+            
+            document.getElementById("total-party-label").innerText = `Total Party Size: ${totalPartySize} / 20 characters`;
+            document.getElementById("start-btn").innerText = `Begin Tavern Draft (${totalPartySize} Players)`;
+        }
+
         function startDraft() {
+            let aiCount = parseInt(document.getElementById("ai-count-select").value) || 0;
+            let finalLobby = [...playersInputNames];
+            
+            // Add selected number of AI bots
+            for(let i = 1; i <= aiCount; i++) {
+                finalLobby.push(`🤖 A.I. Bot ${i}`);
+            }
+
             let shuffledRoster = shuffleArray([...masterCharacterRoster]);
             let availableNumbers = shuffleArray([...Array(20).keys()].map(x => x + 1)); 
-
-            let finalLobby = [...playersInputNames];
-            let aiCounter = 1;
-            while(finalLobby.length < 20) {
-                finalLobby.push(`🤖 A.I. Bot ${aiCounter++}`);
-            }
 
             activePlayersState = finalLobby.map((name, index) => {
                 let char = shuffledRoster[index];
@@ -415,7 +450,6 @@
                 </tr>
             `).join('');
 
-            // Control input availability for AI vs Human
             let throwControls = document.querySelectorAll(".dart-throw-group select");
             if (activeP.isAi) {
                 throwControls.forEach(el => el.disabled = true);
@@ -445,7 +479,6 @@
 
             let damageDealt = Math.floor(totalTurnScore / 3);
 
-            // Character special perks triggered by real dart hits
             if (hitTargetCount > 0) {
                 damageDealt += (hitTargetCount * 10);
                 logger.innerHTML += `🎯 <strong>${activeP.name}</strong> struck their sacred target #${activeP.targetNumber} ${hitTargetCount}x!<br>`;
@@ -459,9 +492,8 @@
                 logger.innerHTML += `💀 Necromancer drains life force from a dark triple hit (+10 HP)!<br>`;
             }
 
-            if (currentRound >= 5) damageDealt *= 2; // Crisis modifier
+            if (currentRound >= 5) damageDealt *= 2; 
 
-            // Target the next available opponent
             let targetIndex = (activeTurnIndex + 1) % activePlayersState.length;
             while(activePlayersState[targetIndex].isEliminated && targetIndex !== activeTurnIndex) {
                 targetIndex = (targetIndex + 1) % activePlayersState.length;
@@ -479,7 +511,6 @@
 
             logger.scrollTop = logger.scrollHeight;
 
-            // Advance turn & rounds
             activeTurnIndex = (activeTurnIndex + 1) % activePlayersState.length;
             if (activeTurnIndex === 0) {
                 currentRound++;
@@ -496,7 +527,6 @@
                 { multiplier: parseInt(document.getElementById("d3-multiplier").value), number: parseInt(document.getElementById("d3-number").value) }
             ];
 
-            // Reset selects to default
             document.getElementById("d1-multiplier").value = "1"; document.getElementById("d1-number").value = "0";
             document.getElementById("d2-multiplier").value = "1"; document.getElementById("d2-number").value = "0";
             document.getElementById("d3-multiplier").value = "1"; document.getElementById("d3-number").value = "0";
@@ -505,7 +535,6 @@
         }
 
         function executeAiTurn(aiPlayer) {
-            // Simulated 40% accuracy bot throws
             let shots = [];
             for(let i = 0; i < 3; i++) {
                 let isAccurate = Math.random() < aiPlayer.accuracy;
@@ -514,9 +543,9 @@
 
                 if (isAccurate) {
                     num = aiPlayer.targetNumber;
-                    mult = Math.random() < 0.2 ? 2 : 1; // 20% chance bot hits double/single on target
+                    mult = Math.random() < 0.2 ? 2 : 1; 
                 } else {
-                    num = Math.floor(Math.random() * 20) + 1; // Random stray dart
+                    num = Math.floor(Math.random() * 20) + 1; 
                     mult = 1;
                 }
                 shots.push({ multiplier: mult, number: num });
