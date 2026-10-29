@@ -312,7 +312,7 @@
     <script>
         const standardCharacterRoster = [
             { name: "King Redlar", role: "Sovereign Tank", ability: "+50 starting health", bonusHp: 50, img: "Redlar.png" },
-            { name: "Queen B", role: "Battle Monarch", ability: "+10 damage if hitting doubles", img: "QueenB.png" },
+            { name: "Queen B", role: "Battle Monarch", ability: "+25 damage if hitting doubles", img: "QueenB.png" },
             { name: "Pope Asshole", role: "High Cleric", ability: "+15 HP regeneration per round", img: "Pope.png" },
             { name: "The Rogue", role: "Cutthroat", ability: "Rethrow one missed dart per game", img: "Rogue.png" },
             { name: "Ranger", role: "Precision Tracker", ability: "Miss board once = 1.5x damage on rest", img: "Ranger.png" },
@@ -320,7 +320,7 @@
             { name: "Bulwark the Berserker", role: "Frenzied Marauder", ability: "All 3 outer singles = double damage", img: "Berserker.png" },
             { name: "Necromancer", role: "Dark Sorcerer", ability: "Steals 10 HP when hitting triples", img: "Necromancer.png" },
             { name: "Jester", role: "Wildcard Trickster", ability: "Wildcard: Gains a new chaotic ability every round!", img: "Jester.png" },
-            { name: "Dwarf", role: "Mountain Fighter", ability: "Numbers 1-7 grant +5 bonus damage", img: "Dwarf.png" },
+            { name: "Dwarf", role: "Mountain Fighter", ability: "Numbers 1-7 grant +10 bonus damage", img: "Dwarf.png" },
             { name: "Assassin", role: "Shadow Stalker", ability: "Final dart Bullseye bypasses defense", img: "Assassin.png" },
             { name: "Knight", role: "Heavy Armored Guard", ability: "Takes 5 less damage from all attacks", img: "Knight.png" },
             { name: "Wizard", role: "Elementalist", ability: "Inner single ring adds +15 magical burn", img: "Wizard.png" },
@@ -802,8 +802,8 @@
 
             // Standard Character Passives
             if (activeP.character === "Queen B" && hitDouble) {
-                damageDealt += 15;
-                logger.innerHTML += `👑 Queen B Royal Decree grants +15 bonus double damage!<br>`;
+                damageDealt += 25;
+                logger.innerHTML += `👑 Queen B Royal Decree grants +25 bonus double damage!<br>`;
             }
             if (activeP.character === "Necromancer" && hitTriple) {
                 activeP.hp = Math.min(activeP.maxHp, activeP.hp + 10);
@@ -822,8 +822,8 @@
             if (activeP.character === "Dwarf") {
                 let dwarfHits = numbersHit.filter(n => n >= 1 && n <= 7).length;
                 if (dwarfHits > 0) {
-                    damageDealt += (dwarfHits * 5);
-                    logger.innerHTML += `⛏️ Dwarf mountain strike hits low numbers for +${dwarfHits * 5} bonus damage!<br>`;
+                    damageDealt += (dwarfHits * 10);
+                    logger.innerHTML += `⛏️ Dwarf mountain strike hits low numbers for +${dwarfHits * 10} bonus damage!<br>`;
                 }
             }
             if (activeP.character === "Assassin") {
