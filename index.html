@@ -249,58 +249,82 @@
             return array;
         }
 
-        function addPlayer() {
-            const input = document.getElementById("player-input");
-            const name = input.value.trim();
-            if(name && !playersInputNames.includes(name)) {
-                playersInputNames.push(name);
-                input.value = "";
-                updatePlayerListUI();
-            }
+        // --- UPDATED SETUP & AI LOGIC ---
+
+function addPlayer() {
+    const input = document.getElementById("player-input");
+    const name = input.value.trim();
+    if(name && !playersInputNames.includes(name)) {
+        if(playersInputNames.length >= 20) {
+            alert("Redlarovia can hold a maximum of 20 adventurers!");
+            return;
         }
+        playersInputNames.push(name);
+        input.value = "";
+        updatePlayerListUI();
+    }
+}
 
-        function updatePlayerListUI() {
-            const listDiv = document.getElementById("player-list-display");
-            listDiv.innerHTML = playersInputNames.map(p => `<span style="background:#3b3026; padding:5px 10px; margin:5px; display:inline-block; border-radius:4px;">⚔️ ${p}</span>`).join('');
-            if(playersInputNames.length >= 2) {
-                document.getElementById("start-btn").classList.remove("hidden");
-            }
-        }
+function updatePlayerListUI() {
+    const listDiv = document.getElementById("player-list-display");
+    listDiv.innerHTML = playersInputNames.map(p => `<span style="background:#3b3026; padding:5px 10px; margin:5px; display:inline-block; border-radius:4px;">⚔️ ${p}</span>`).join('');
+    
+    // Enable start button if at least 1 human player is ready
+    if(playersInputNames.length >= 1) {
+        document.getElementById("start-btn").classList.remove("hidden");
+        document.getElementById("start-btn").innerText = playersInputNames.length < 20 ? 
+            `Begin Draft & Fill Rest with A.I. (${20 - playersInputNames.length} Slots)` : 
+            `Begin Tavern Draft (Act I)`;
+    } else {
+        document.getElementById("start-btn").classList.add("hidden");
+    }
+}
 
-        function startDraft() {
-            let shuffledRoster = shuffleArray([...masterCharacterRoster]);
-            let availableNumbers = shuffleArray([...Array(20).keys()].map(x => x + 1)); // 1 to 20 random pool
+function startDraft() {
+    let shuffledRoster = shuffleArray([...masterCharacterRoster]);
+    let availableNumbers = shuffleArray([...Array(20).keys()].map(x => x + 1)); 
 
-            activePlayersState = playersInputNames.map((name, index) => {
-                let char = shuffledRoster[index];
-                let baseHp = 300 + (char.bonusHp || 0);
-                return {
-                    name: name,
-                    character: char.name,
-                    role: char.role,
-                    ability: char.ability,
-                    targetNumber: availableNumbers[index],
-                    hp: baseHp,
-                    maxHp: baseHp,
-                    isEliminated: false
-                };
-            });
+    let finalLobby = [...playersInputNames];
 
-            // Render Act I Draft Screen
-            const draftGrid = document.getElementById("draft-results");
-            draftGrid.innerHTML = activePlayersState.map(p => `
-                <div class="character-card">
-                    <h4>${p.name}</h4>
-                    <p><strong>Champion:</strong> ${p.character} (${p.role})</p>
-                    <p style="color:var(--accent-gold); font-size:0.85rem;">Dart Target: #${p.targetNumber}</p>
-                    <p style="font-size:0.8rem; color:var(--text-muted);">${p.ability}</p>
-                </div>
-            `).join('');
+    // If less than 20 players, automatically fill the remaining slots with A.I. players (40% Accuracy)
+    let aiCounter = 1;
+    while(finalLobby.length < 20) {
+        finalLobby.push(`🤖 A.I. Bot ${aiCounter++} (40% Acc)`);
+    }
 
-            document.getElementById("screen-setup").classList.add("hidden");
-            document.getElementById("screen-draft").classList.remove("hidden");
-        }
+    activePlayersState = finalLobby.map((name, index) => {
+        let char = shuffledRoster[index];
+        let baseHp = 300 + (char.bonusHp || 0);
+        let isAi = name.includes("🤖");
+        
+        return {
+            name: name,
+            character: char.name,
+            role: char.role,
+            ability: char.ability,
+            targetNumber: availableNumbers[index],
+            hp: baseHp,
+            maxHp: baseHp,
+            isEliminated: false,
+            isAi: isAi,
+            accuracy: isAi ? 0.40 : 1.0 // 40% accuracy modifier for A.I.
+        };
+    });
 
+    // Render Act I Draft Screen
+    const draftGrid = document.getElementById("draft-results");
+    draftGrid.innerHTML = activePlayersState.map(p => `
+        <div class="character-card" ${p.isAi ? 'style="border-color: #555; background: #161412;"' : ''}>
+            <h4>${p.name}</h4>
+            <p><strong>Champion:</strong> ${p.character} (${p.role})</p>
+            <p style="color:var(--accent-gold); font-size:0.85rem;">Dart Target: #${p.targetNumber}</p>
+            <p style="font-size:0.8rem; color:var(--text-muted);">${p.ability}</p>
+        </div>
+    `).join('');
+
+    document.getElementById("screen-setup").classList.add("hidden");
+    document.getElementById("screen-draft").classList.remove("hidden");
+}
         function startConquest() {
             document.getElementById("screen-draft").classList.add("hidden");
             document.getElementById("screen-conquest").classList.remove("hidden");
