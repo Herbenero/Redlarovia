@@ -749,19 +749,20 @@
             alert("📜 REDLAROVIA DAMAGE GUIDE:\n\n1. BASE DAMAGE: Your 3-dart total score is divided by 3.\n\n2. TARGET BONUS: Hitting your character's sacred Target Number adds +10 flat damage per hit!\n\n3. RINGS: You can now choose between Inner Singles, Outer Singles, Doubles, and Triples to trigger specific class perks like the Wizard or Berserker!\n\n4. REALM CRISIS: From Round 5 onwards, all final damage values are DOUBLED!");
         }
 
-        function triggerFinale(survivors) {
-            document.getElementById("screen-conquest").classList.add("hidden");
-            document.getElementById("screen-finale").classList.remove("hidden");
+       function triggerFinale(survivors) {
+    document.getElementById("screen-conquest").classList.add("hidden");
+    document.getElementById("screen-finale").classList.remove("hidden");
 
-            let winner = survivors.length > 0 ? survivors[0] : activePlayersState[0];
-            document.getElementById("finale-winner-banner").innerHTML = `
-                <div style="margin-bottom: 15px;">
-                    <img src="${winner.img || 'Redlar.png'}" alt="${winner.character}" style="width: 120px; height: 120px; border-radius: 50%; border: 3px solid var(--accent-gold); object-fit: cover; box-shadow: 0 4px 10px rgba(0,0,0,0.8);">
-                </div>
-                🏆 <strong>${winner.name}</strong> playing as <strong>${winner.character}</strong> has conquered Redlarovia!<br>
-                <span style="color:var(--text-muted); font-size:1rem;">The realm is saved within the 20-30 minute prophecy.</span>
-            `;
-        }
+    let winner = survivors.length > 0 ? survivors[0] : [...activePlayersState].sort((a, b) => b.hp - a.hp)[0];
+    
+    document.getElementById("finale-winner-banner").innerHTML = `
+        <div style="margin-bottom: 20px;">
+            <img src="${winner && winner.img ? winner.img : 'Redlar.png'}" alt="${winner ? winner.character : 'Champion'}" style="max-width: 220px; max-height: 280px; border-radius: 8px; border: 3px solid var(--accent-gold); object-fit: contain; box-shadow: 0 8px 16px rgba(0,0,0,0.8); background: #161412; padding: 5px;">
+        </div>
+        🏆 <strong>${winner ? winner.name : 'A Challenger'}</strong> playing as <strong>${winner ? winner.character : 'Hero'}</strong> has conquered Redlarovia!<br>
+        <span style="color:var(--text-muted); font-size:1rem;">The realm is saved within the 20-30 minute prophecy.</span>
+    `;
+}
     </script>
 </body>
 </html>
