@@ -313,7 +313,7 @@
         const standardCharacterRoster = [
             { name: "King Redlar", role: "Sovereign Tank", ability: "+50 starting health", bonusHp: 50, img: "Redlar.png" },
             { name: "Queen B", role: "Battle Monarch", ability: "+10 damage if hitting doubles", img: "QueenB.png" },
-            { name: "Pope Asshole", role: "High Cleric", ability: "+5 HP regeneration per round", img: "Pope.png" },
+            { name: "Pope Asshole", role: "High Cleric", ability: "+15 HP regeneration per round", img: "Pope.png" },
             { name: "The Rogue", role: "Cutthroat", ability: "Rethrow one missed dart per game", img: "Rogue.png" },
             { name: "Ranger", role: "Precision Tracker", ability: "Miss board once = 1.5x damage on rest", img: "Ranger.png" },
             { name: "Warlock", role: "Pact Magic User", ability: "Sacrifice 20 HP to deal 25 direct damage", img: "Warlock.png" },
@@ -344,10 +344,10 @@
 
         const medievalAiNames = [
             "Sir Bot-A-Lot", "Erowyn the Greybot", "Gears-A-Lot", "Lady Circuit", 
-            "Automaton of Oakhaven", "Iron-Clank the Bold", "Clockwork Crusader", 
+            "Automaton of Oakhaven", "Igor the Bold", "Clockwork Crusader", 
             "Sprocket the Swift", "Cog-Smith", "Data-Mage Alistair", 
-            "Anvil-Byte", "Sir Rust-A-Byte", "Brass Golem-9", "Tin-Can Templar", 
-            "Gear-Heart", "Cipher the Scribe", "Automaton Squire", 
+            "Anvil-Byte", "Sir Bottingham", "Brass Golem-9", "Tin-Can Templar", 
+            "Gear-Heart", "Cipher the Scribe", "Squire of HellDeep", 
             "Parchment-Bot", "The Alchemist's Engine", "Lord Binary"
         ];
 
@@ -608,10 +608,10 @@
 
             let activeP = activePlayersState[activeTurnIndex];
 
-            if (activeP.character === "Pope Asshole" && activeP.hp < activeP.maxHp) {
-                activeP.hp = Math.min(activeP.maxHp, activeP.hp + 5);
-                document.getElementById("game-logger").innerHTML += `✨ Pope Asshole regenerates +5 HP at turn start!<br>`;
-            }
+           if (activeP.character === "Pope Asshole" && activeP.hp < activeP.maxHp) {
+    activeP.hp = Math.min(activeP.maxHp, activeP.hp + 15);
+    document.getElementById("game-logger").innerHTML += `✨ Pope Asshole regenerates +15 HP at turn start!<br>`;
+}
             if (activeP.character === "Bard") {
                 activeP.hp = Math.min(activeP.maxHp, activeP.hp + 5);
                 document.getElementById("game-logger").innerHTML += `🎶 Bard plays a tavern melody, generating +5 HP!<br>`;
