@@ -319,7 +319,7 @@
             { name: "Warlock", role: "Pact Magic User", ability: "Sacrifice 20 HP to deal 25 direct damage", img: "Warlock.png" },
             { name: "Bulwark the Berserker", role: "Frenzied Marauder", ability: "All 3 outer singles = double damage", img: "Berserker.png" },
             { name: "Necromancer", role: "Dark Sorcerer", ability: "Steals 10 HP when hitting triples", img: "Necromancer.png" },
-            { name: "Jester", role: "Wildcard Trickster", ability: "Hitting 1 reverses turn order", img: "Jester.png" },
+            { name: "Jester", role: "Wildcard Trickster", ability: "Wildcard: Gains a new chaotic ability every round!", img: "Jester.png" },
             { name: "Dwarf", role: "Mountain Fighter", ability: "Numbers 1-7 grant +5 bonus damage", img: "Dwarf.png" },
             { name: "Assassin", role: "Shadow Stalker", ability: "Final dart Bullseye bypasses defense", img: "Assassin.png" },
             { name: "Knight", role: "Heavy Armored Guard", ability: "Takes 5 less damage from all attacks", img: "Knight.png" },
@@ -641,6 +641,21 @@
             currentDartsLogged = [];
             setModifier('inner');
             updateDartPreviewUI();
+            // Jester Shifting Ability Rotation
+if (activeP.character === "Jester") {
+    const jesterPowers = [
+        { name: "🃏 Laughing Stock: Reverses turn order when hitting a 1.", effect: "reverse" },
+        { name: "🎭 Fool's Gold: Scoring a 20 grants +10 bonus damage.", effect: "gold" },
+        { name: "🃏 Sleight of Hand: Missed darts (0) automatically count as 5 points.", effect: "sleight" },
+        { name: "🎭 Prankster's Grin: Healing +10 HP at the start of the turn.", effect: "heal" },
+        { name: "🃏 Wildcard Madness: Doubles raw score if total score is odd.", effect: "madness" }
+    ];
+    
+    // Pick an ability based on the current round (cycles 1 through 5)
+    let currentPower = jesterPowers[(currentRound - 1) % jesterPowers.length];
+    activeP.ability = currentPower.name;
+    activeP.jesterEffect = currentPower.effect;
+}
 
             let keypadContainer = document.querySelector(".dart-keypad");
             let targetControl = document.getElementById("target-player-select");
@@ -699,7 +714,29 @@
                 } else {
                     multVal = 1; 
                 }
-
+// Jester Dynamic Effect Triggers
+if (activeP.character === "Jester") {
+    if (activeP.jesterEffect === "reverse" && numbersHit.includes(1)) {
+        turnOrderReversed = !turnOrderReversed;
+        logger.innerHTML += `🃏 Jester hits a 1! Turn order has been REVERSED!<br>`;
+    }
+    if (activeP.jesterEffect === "gold" && numbersHit.includes(20)) {
+        damageDealt += 10;
+        logger.innerHTML += `🎭 Fool's Gold triggers on a 20! +10 bonus damage!<br>`;
+    }
+    if (activeP.jesterEffect === "sleight" && missCount > 0) {
+        totalTurnScore += (missCount * 5);
+        logger.innerHTML += `🃏 Sleight of Hand turns misses into +${missCount * 5} points!<br>`;
+    }
+    if (activeP.jesterEffect === "heal") {
+        activeP.hp = Math.min(activeP.maxHp, activeP.hp + 10);
+        logger.innerHTML += `🎭 Prankster's Grin heals Jester for +10 HP!<br>`;
+    }
+    if (activeP.jesterEffect === "madness" && totalTurnScore % 2 !== 0) {
+        totalTurnScore *= 2;
+        logger.innerHTML += `🃏 Wildcard Madness! Odd total score doubled your output!<br>`;
+    }
+}
                 if (currentNum === 0) {
                     if (activeP.character === "The Rogue" && !activeP.abilityUsed) {
                         currentNum = 10; multType = 'outer'; multVal = 1;
