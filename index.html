@@ -312,7 +312,7 @@
     <script>
         const standardCharacterRoster = [
             { name: "King Redlar", role: "Sovereign Tank", ability: "+50 starting health", bonusHp: 50, img: "Redlar.png" },
-            { name: "Queen B", role: "Battle Monarch", ability: "+25 damage if hitting doubles", img: "QueenB.png" },
+            { name: "Queen B", role: "Royal Guardian Sovereign", ability: "+5 health per round and -5% damage taken", img: "QueenB.png" },
             { name: "Pope Asshole", role: "High Cleric", ability: "+15 HP regeneration per round", img: "Pope.png" },
             { name: "The Rogue", role: "Cutthroat", ability: "Rethrow one missed dart per game", img: "Rogue.png" },
             { name: "Ranger", role: "Precision Tracker", ability: "Miss board once = 1.5x damage on rest", img: "Ranger.png" },
@@ -340,6 +340,7 @@
             { name: "Zephyr the Tempest", role: "Wind Channeler", ability: "Landing 3 Quads unleashes double damage", img: "Zephyr.png" },
             { name: "Ignatius the Flamekeeper", role: "Pyromancer", ability: "Hitting a Quad deals +10 piercing burn damage", img: "Ignatius.png" },
             { name: "Lyra the Starcaller", role: "Celestial Mystic", ability: "Hitting a Quad grants +10 health and damage reduction", img: "Lyra.png" }
+            { name: "Sven the Hearthwarden", role: "Tavern Bastion", ability: "Hitting a Middle segment heals +10 HP and reduces incoming damage", img: "Sven.png" }
         ];
 
         const medievalAiNames = [
@@ -611,6 +612,10 @@
                 activeP.hp = Math.min(activeP.maxHp, activeP.hp + 15);
                 document.getElementById("game-logger").innerHTML += `✨ Pope Asshole regenerates +15 HP at turn start!<br>`;
             }
+            if (activeP.character === "Queen B") {
+    activeP.hp = Math.min(activeP.maxHp, activeP.hp + 5);
+    document.getElementById("game-logger").innerHTML += `👑 Queen B Regal Grace heals +5 HP at turn start!<br>`;
+}
             if (activeP.character === "Bard") {
                 activeP.hp = Math.min(activeP.maxHp, activeP.hp + 5);
                 document.getElementById("game-logger").innerHTML += `🎶 Bard plays a tavern melody, generating +5 HP!<br>`;
@@ -804,10 +809,6 @@ document.getElementById("current-turn-ability").innerHTML = `✨ <strong>Charact
             }
 
             // Standard Character Passives
-            if (activeP.character === "Queen B" && hitDouble) {
-                damageDealt += 25;
-                logger.innerHTML += `👑 Queen B Royal Decree grants +25 bonus double damage!<br>`;
-            }
             if (activeP.character === "Necromancer" && hitTriple) {
                 activeP.hp = Math.min(activeP.maxHp, activeP.hp + 10);
                 logger.innerHTML += `💀 Necromancer drains life force from a triple hit (+10 HP)!<br>`;
@@ -889,6 +890,20 @@ document.getElementById("current-turn-ability").innerHTML = `✨ <strong>Charact
                     activeP.incomingDmgReduction += 5;
                     logger.innerHTML += `✨ Lyra aligns the stars with a quad, healing +10 HP and blessing shields!<br>`;
                 }
+                // Inside your shot-processing loop:
+let middleSingleCount = 0;
+// (inside shots.forEach loop)
+if (multType === 'middle') middleSingleCount++;
+
+// Queen B Damage Reduction (5% off total incoming damage)
+// (handled down where targetP receives damage)
+
+// Sven Ability Trigger
+if (middleSingleCount > 0 && activeP.character === "Sven the Hearthwarden") {
+    activeP.hp = Math.min(activeP.maxHp, activeP.hp + (middleSingleCount * 10));
+    activeP.incomingDmgReduction += (middleSingleCount * 5);
+    document.getElementById("game-logger").innerHTML += `🛡️ Sven strikes the hearth middle segments, healing +${middleSingleCount * 10} HP and fortifying armor!<br>`;
+}
             }
 
             if (currentRound >= 5) damageDealt *= 2; 
@@ -918,6 +933,14 @@ document.getElementById("current-turn-ability").innerHTML = `✨ <strong>Charact
                     finalDmgToTarget -= targetP.defenseShield;
                     targetP.defenseShield = 0;
                 }
+                if (targetP.character === "QueenB" || targetP.character === "Queen B") {
+    finalDmgToTarget = Math.floor(finalDmgToTarget * 0.95);
+}
+
+if (targetP.incomingDmgReduction > 0) {
+    finalDmgToTarget = Math.max(0, finalDmgToTarget - targetP.incomingDmgReduction);
+    targetP.incomingDmgReduction = 0; 
+}
             }
 
             targetP.hp -= finalDmgToTarget;
