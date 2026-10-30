@@ -682,6 +682,15 @@ tbody.innerHTML = activePlayersState.map((p, idx) => `
                     activeP.warlockQueued = false;
                 }
             }
+            // Rogue On-Demand Ability Prompt (Human players only)
+            if (activeP.character === "The Rogue" && !activeP.abilityUsed && !activeP.isAi) {
+                let useRogueAbility = confirm(`🗡️ Cutthroat Reflexes Ready, ${activeP.name}!\n\nDo you want to rethrow your missed darts this turn?`);
+                if (useRogueAbility) {
+                    activeP.rogueQueued = true;
+                } else {
+                    activeP.rogueQueued = false;
+                }
+            }
 
             let keypadContainer = document.querySelector(".dart-keypad");
             let targetControl = document.getElementById("target-player-select");
@@ -711,6 +720,17 @@ tbody.innerHTML = activePlayersState.map((p, idx) => `
                 targetControl.disabled = false;
             }
         }
+        if (activeP.character === "Warlock" && !activeP.abilityUsed && activeP.hp > 40 && Math.random() < 0.5) {
+                    activeP.warlockQueued = true;
+                } else {
+                    activeP.warlockQueued = false;
+                }
+
+                if (activeP.character === "The Rogue" && !activeP.abilityUsed) {
+                    activeP.rogueQueued = true; // AI Rogue always queues rethrows
+                } else {
+                    activeP.rogueQueued = false;
+                }
 
         function advanceTurnIndex() {
             if (turnOrderReversed) {
@@ -747,11 +767,12 @@ tbody.innerHTML = activePlayersState.map((p, idx) => `
                     multVal = 1; 
                 }
 
-                if (currentNum === 0) {
-                    if (activeP.character === "The Rogue" && !activeP.abilityUsed) {
+               if (currentNum === 0) {
+                    if (activeP.character === "The Rogue" && activeP.rogueQueued && !activeP.abilityUsed) {
                         currentNum = 10; multType = 'outer'; multVal = 1;
                         activeP.abilityUsed = true;
-                        logger.innerHTML += `🗡️ Rogue rethrows a missed dart for a clean hit (+10 pts)!<br>`;
+                        activeP.rogueQueued = false;
+                        logger.innerHTML += `🗡️ Rogue used Cutthroat Reflexes to turn a miss into a clean hit (+10 pts)!<br>`;
                     } else if (activeP.character === "Alchemist" && !activeP.abilityUsed) {
                         currentNum = 20; multType = 'outer'; multVal = 1;
                         activeP.abilityUsed = true;
