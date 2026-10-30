@@ -357,6 +357,7 @@
         let currentRound = 1;
         let activeTurnIndex = 0;
         let turnOrderReversed = false;
+        let eliminationCounter = 1; // Tracks order of elimination
         const MAX_ROUNDS = 7; 
 
         // Active Turn Input State
@@ -460,6 +461,7 @@
             let shuffledRoster = shuffleArray(activeRosterPool);
             let availableNumbers = shuffleArray([...Array(20).keys()].map(x => x + 1)); 
 
+            eliminationCounter = 1;
             activePlayersState = finalLobby.map((name, index) => {
                 let char = shuffledRoster[index % shuffledRoster.length];
                 let baseHp = 300 + (char.bonusHp || 0);
@@ -473,6 +475,7 @@
                     hp: baseHp,
                     maxHp: baseHp,
                     isEliminated: false,
+                    eliminatedOrder: null,
                     isAi: isAi,
                     accuracy: isAi ? 0.40 : 1.0,
                     abilityUsed: false,
@@ -659,15 +662,15 @@
                 }
             });
 
-          const tbody = document.getElementById("scoreboard-body");
-tbody.innerHTML = activePlayersState.map((p, idx) => `
-    <tr ${p.isEliminated ? 'style="opacity: 0.4; text-decoration: line-through;"' : ''}>
-        <td><strong>${p.name}</strong> ${idx === activeTurnIndex ? '👑 (Turn)' : ''}</td>
-        <td>${p.character}</td>
-        <td>#${p.targetNumber}</td>
-        <td>${p.hp} HP ${p.defenseShield > 0 ? `<span style="color: var(--accent-gold); font-weight: bold;">(🛡️ +${p.defenseShield})</span>` : ''}</td>
-    </tr>
-`).join('');
+            const tbody = document.getElementById("scoreboard-body");
+            tbody.innerHTML = activePlayersState.map((p, idx) => `
+                <tr ${p.isEliminated ? 'style="opacity: 0.4; text-decoration: line-through;"' : ''}>
+                    <td><strong>${p.name}</strong> ${idx === activeTurnIndex ? '👑 (Turn)' : ''}</td>
+                    <td>${p.character}</td>
+                    <td>#${p.targetNumber}</td>
+                    <td>${p.hp} HP ${p.defenseShield > 0 ? `<span style="color: var(--accent-gold); font-weight: bold;">(🛡️ +${p.defenseShield})</span>` : ''}</td>
+                </tr>
+            `).join('');
 
             currentDartsLogged = [];
             setModifier('inner');
@@ -682,6 +685,7 @@ tbody.innerHTML = activePlayersState.map((p, idx) => `
                     activeP.warlockQueued = false;
                 }
             }
+
             // Rogue On-Demand Ability Prompt (Human players only)
             if (activeP.character === "The Rogue" && !activeP.abilityUsed && !activeP.isAi) {
                 let useRogueAbility = confirm(`🗡️ Cutthroat Reflexes Ready, ${activeP.name}!\n\nDo you want to rethrow your missed darts this turn?`);
@@ -706,6 +710,12 @@ tbody.innerHTML = activePlayersState.map((p, idx) => `
                     activeP.warlockQueued = false;
                 }
 
+                if (activeP.character === "The Rogue" && !activeP.abilityUsed) {
+                    activeP.rogueQueued = true; 
+                } else {
+                    activeP.rogueQueued = false;
+                }
+
                 let aliveIndices = [];
                 activePlayersState.forEach((p, idx) => {
                     if (!p.isEliminated && idx !== activeTurnIndex) aliveIndices.push(idx);
@@ -720,17 +730,6 @@ tbody.innerHTML = activePlayersState.map((p, idx) => `
                 targetControl.disabled = false;
             }
         }
-        if (activeP.character === "Warlock" && !activeP.abilityUsed && activeP.hp > 40 && Math.random() < 0.5) {
-                    activeP.warlockQueued = true;
-                } else {
-                    activeP.warlockQueued = false;
-                }
-
-                if (activeP.character === "The Rogue" && !activeP.abilityUsed) {
-                    activeP.rogueQueued = true; // AI Rogue always queues rethrows
-                } else {
-                    activeP.rogueQueued = false;
-                }
 
         function advanceTurnIndex() {
             if (turnOrderReversed) {
@@ -767,7 +766,7 @@ tbody.innerHTML = activePlayersState.map((p, idx) => `
                     multVal = 1; 
                 }
 
-               if (currentNum === 0) {
+                if (currentNum === 0) {
                     if (activeP.character === "The Rogue" && activeP.rogueQueued && !activeP.abilityUsed) {
                         currentNum = 10; multType = 'outer'; multVal = 1;
                         activeP.abilityUsed = true;
@@ -969,6 +968,7 @@ tbody.innerHTML = activePlayersState.map((p, idx) => `
             if (targetP.hp <= 0) {
                 targetP.hp = 0;
                 targetP.isEliminated = true;
+                targetP.eliminatedOrder = eliminationCounter++;
                 logger.innerHTML += `💀 <strong>${targetP.name}</strong> has fallen in battle!<br>`;
             }
 
@@ -1017,12 +1017,31 @@ tbody.innerHTML = activePlayersState.map((p, idx) => `
             document.getElementById("screen-finale").classList.remove("hidden");
 
             let winner = survivors.length > 0 ? survivors[0] : [...activePlayersState].sort((a, b) => b.hp - a.hp)[0];
+
+            // Sort eliminated players by elimination order descending so the first person out is at the bottom
+            let eliminatedPlayers = activePlayersState
+                .filter(p => p.isEliminated)
+                .sort((a, b) => b.eliminatedOrder - a.eliminatedOrder);
+
+            let eliminationHtml = "";
+            if (eliminatedPlayers.length > 0) {
+                eliminationHtml = `
+                    <div style="margin-top: 25px; background: #1e1813; padding: 15px; border-radius: 6px; border: 1px solid var(--text-muted); text-align: left; max-width: 400px; margin-left: auto; margin-right: auto;">
+                        <h4 style="margin-top: 0; color: var(--accent-gold); text-align: center;">📜 Fall of the Realm</h4>
+                        <ol style="margin: 0; padding-left: 20px; font-size: 0.95rem;">
+                            ${eliminatedPlayers.map(p => `<li style="margin: 6px 0;"><strong>${p.name}</strong> (${p.character})</li>`).join('')}
+                        </ol>
+                    </div>
+                `;
+            }
+
             document.getElementById("finale-winner-banner").innerHTML = `
                 <div style="margin-bottom: 20px;">
                     <img src="${winner && winner.img ? winner.img : 'Redlar.png'}" alt="${winner ? winner.character : 'Champion'}" style="max-width: 220px; max-height: 280px; border-radius: 8px; border: 3px solid var(--accent-gold); object-fit: contain; box-shadow: 0 8px 16px rgba(0,0,0,0.8); background: #161412; padding: 5px;">
                 </div>
                 🏆 <strong>${winner ? winner.name : 'A Challenger'}</strong> playing as <strong>${winner ? winner.character : 'Hero'}</strong> has conquered Redlarovia!<br>
                 <span style="color:var(--text-muted); font-size:1rem;">The realm is saved within the 20-30 minute prophecy.</span>
+                ${eliminationHtml}
             `;
         }
     </script>
