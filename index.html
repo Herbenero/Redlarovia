@@ -380,33 +380,31 @@
         }
 
         function addPlayer() {
-    const input = document.getElementById("player-input");
-    if (!input) return;
-    const name = input.value.trim();
-    
-    if(name && !playersInputNames.includes(name)) {
-        if(playersInputNames.length >= 20) {
-            alert("Redlarovia can hold a maximum of 20 total participants!");
-            return;
+            const input = document.getElementById("player-input");
+            if (!input) return;
+            const name = input.value.trim();
+            if(name && !playersInputNames.includes(name)) {
+                if(playersInputNames.length >= 20) {
+                    alert("Redlarovia can hold a maximum of 20 total participants!");
+                    return;
+                }
+                playersInputNames.push(name);
+                input.value = "";
+                updatePlayerListUI();
+            }
         }
-        playersInputNames.push(name);
-        input.value = "";
-        updatePlayerListUI();
-    }
-}
 
-// Allow pressing "Enter" key inside the input box to add players effortlessly
-document.addEventListener("DOMContentLoaded", () => {
-    const playerInput = document.getElementById("player-input");
-    if (playerInput) {
-        playerInput.addEventListener("keypress", function(event) {
-            if (event.key === "Enter") {
-                event.preventDefault();
-                addPlayer();
+        document.addEventListener("DOMContentLoaded", () => {
+            const playerInput = document.getElementById("player-input");
+            if (playerInput) {
+                playerInput.addEventListener("keypress", function(event) {
+                    if (event.key === "Enter") {
+                        event.preventDefault();
+                        addPlayer();
+                    }
+                });
             }
         });
-    }
-});
 
         function updatePlayerListUI() {
             const listDiv = document.getElementById("player-list-display");
@@ -627,13 +625,27 @@ document.addEventListener("DOMContentLoaded", () => {
                 activeP.hp = Math.min(activeP.maxHp, activeP.hp + 15);
                 document.getElementById("game-logger").innerHTML += `✨ Pope Asshole regenerates +15 HP at turn start!<br>`;
             }
-            if (activeP.character === "Queen B") {
-    activeP.hp = Math.min(activeP.maxHp, activeP.hp + 5);
-    document.getElementById("game-logger").innerHTML += `👑 Queen B Regal Grace heals +5 HP at turn start!<br>`;
-}
+            if (activeP.character === "Queen B" && activeP.hp < activeP.maxHp) {
+                activeP.hp = Math.min(activeP.maxHp, activeP.hp + 5);
+                document.getElementById("game-logger").innerHTML += `👑 Queen B Regal Grace heals +5 HP at turn start!<br>`;
+            }
             if (activeP.character === "Bard") {
                 activeP.hp = Math.min(activeP.maxHp, activeP.hp + 5);
                 document.getElementById("game-logger").innerHTML += `🎶 Bard plays a tavern melody, generating +5 HP!<br>`;
+            }
+
+            // Jester Shifting Ability Rotation
+            if (activeP.character === "Jester") {
+                const jesterPowers = [
+                    { name: "🃏 Laughing Stock: Reverses turn order when hitting a 1.", effect: "reverse" },
+                    { name: "🎭 Fool's Gold: Scoring a 20 grants +10 bonus damage.", effect: "gold" },
+                    { name: "🃏 Sleight of Hand: Missed darts (0) automatically count as 5 points.", effect: "sleight" },
+                    { name: "🎭 Prankster's Grin: Healing +10 HP at the start of the turn.", effect: "heal" },
+                    { name: "🃏 Wildcard Madness: Doubles raw score if total score is odd.", effect: "madness" }
+                ];
+                let currentPower = jesterPowers[(currentRound - 1) % jesterPowers.length];
+                activeP.jesterEffect = currentPower.effect;
+                activeP.ability = currentPower.name;
             }
 
             document.getElementById("current-turn-heading").innerText = `${activeP.name}'s Turn (${activeP.character} - Target: #${activeP.targetNumber})`;
@@ -661,23 +673,6 @@ document.addEventListener("DOMContentLoaded", () => {
             setModifier('inner');
             updateDartPreviewUI();
 
-           // Jester Shifting Ability Rotation
-if (activeP.character === "Jester") {
-    const jesterPowers = [
-        { name: "🃏 Laughing Stock: Reverses turn order when hitting a 1.", effect: "reverse" },
-        { name: "🎭 Fool's Gold: Scoring a 20 grants +10 bonus damage.", effect: "gold" },
-        { name: "🃏 Sleight of Hand: Missed darts (0) automatically count as 5 points.", effect: "sleight" },
-        { name: "🎭 Prankster's Grin: Healing +10 HP at the start of the turn.", effect: "heal" },
-        { name: "🃏 Wildcard Madness: Doubles raw score if total score is odd.", effect: "madness" }
-    ];
-    let currentPower = jesterPowers[(currentRound - 1) % jesterPowers.length];
-    
-    // Update both his active effect and his displayed ability text
-    activeP.jesterEffect = currentPower.effect;
-    activeP.ability = currentPower.name; 
-}
-document.getElementById("current-turn-heading").innerText = `${activeP.name}'s Turn (${activeP.character} - Target: #${activeP.targetNumber})`;
-document.getElementById("current-turn-ability").innerHTML = `✨ <strong>Character Ability:</strong> ${activeP.ability}`;
             // Warlock On-Demand Ability Prompt (Human players only)
             if (activeP.character === "Warlock" && !activeP.abilityUsed && !activeP.isAi) {
                 let useWarlockAbility = confirm(`🔮 Dark Pact Ready, ${activeP.name}!\n\nDo you want to sacrifice 20 HP this turn to deal 25 direct damage?`);
@@ -696,7 +691,6 @@ document.getElementById("current-turn-ability").innerHTML = `✨ <strong>Charact
                 keypadContainer.style.pointerEvents = "none";
                 targetControl.disabled = true;
                 
-                // AI Warlock decision logic (uses ability if health is above 40)
                 if (activeP.character === "Warlock" && !activeP.abilityUsed && activeP.hp > 40 && Math.random() < 0.5) {
                     activeP.warlockQueued = true;
                 } else {
@@ -739,7 +733,7 @@ document.getElementById("current-turn-ability").innerHTML = `✨ <strong>Charact
             let quadCount = 0;
             let numbersHit = [];
 
-            shots.forEach((shot, idx) => {
+            shots.forEach((shot) => {
                 let currentNum = shot.number;
                 let multType = shot.multiplier; 
                 let multVal = 1;
@@ -789,8 +783,8 @@ document.getElementById("current-turn-ability").innerHTML = `✨ <strong>Charact
                     logger.innerHTML += `🃏 Jester hits a 1! Turn order has been REVERSED!<br>`;
                 }
                 if (activeP.jesterEffect === "gold" && numbersHit.includes(20)) {
-                    damageDealt += 10;
-                    logger.innerHTML += `🎭 Fool's Gold triggers on a 20! +10 bonus damage!<br>`;
+                    totalTurnScore += 10;
+                    logger.innerHTML += `🎭 Fool's Gold triggers on a 20! +10 bonus points!<br>`;
                 }
                 if (activeP.jesterEffect === "sleight" && missCount > 0) {
                     totalTurnScore += (missCount * 5);
@@ -824,6 +818,10 @@ document.getElementById("current-turn-ability").innerHTML = `✨ <strong>Charact
             }
 
             // Standard Character Passives
+            if (activeP.character === "Queen B" && hitDouble) {
+                damageDealt += 25;
+                logger.innerHTML += `👑 Queen B Royal Decree grants +25 bonus double damage!<br>`;
+            }
             if (activeP.character === "Necromancer" && hitTriple) {
                 activeP.hp = Math.min(activeP.maxHp, activeP.hp + 10);
                 logger.innerHTML += `💀 Necromancer drains life force from a triple hit (+10 HP)!<br>`;
@@ -859,10 +857,6 @@ document.getElementById("current-turn-ability").innerHTML = `✨ <strong>Charact
                 activeP.abilityUsed = true;
                 activeP.warlockQueued = false;
                 logger.innerHTML += `🔮 Warlock executed Dark Pact! Sacrificed 20 HP to deal 25 direct dark damage!<br>`;
-            }
-            if (activeP.character === "Jester" && numbersHit.includes(1)) {
-                turnOrderReversed = !turnOrderReversed;
-                logger.innerHTML += `🃏 Jester hits a 1! Turn order has been REVERSED!<br>`;
             }
             if (activeP.character === "Paladin" && hitDouble) {
                 activeP.incomingDmgReduction = 10;
@@ -905,20 +899,12 @@ document.getElementById("current-turn-ability").innerHTML = `✨ <strong>Charact
                     activeP.incomingDmgReduction += 5;
                     logger.innerHTML += `✨ Lyra aligns the stars with a quad, healing +10 HP and blessing shields!<br>`;
                 }
-                // Inside your shot-processing loop:
-let middleSingleCount = 0;
-// (inside shots.forEach loop)
-if (multType === 'middle') middleSingleCount++;
+            }
 
-// Queen B Damage Reduction (5% off total incoming damage)
-// (handled down where targetP receives damage)
-
-// Sven Ability Trigger
-if (middleSingleCount > 0 && activeP.character === "Sven the Hearthwarden") {
-    activeP.hp = Math.min(activeP.maxHp, activeP.hp + (middleSingleCount * 10));
-    activeP.incomingDmgReduction += (middleSingleCount * 5);
-    document.getElementById("game-logger").innerHTML += `🛡️ Sven strikes the hearth middle segments, healing +${middleSingleCount * 10} HP and fortifying armor!<br>`;
-}
+            if (middleSingleCount > 0 && activeP.character === "Sven the Hearthwarden") {
+                activeP.hp = Math.min(activeP.maxHp, activeP.hp + (middleSingleCount * 10));
+                activeP.incomingDmgReduction += (middleSingleCount * 5);
+                logger.innerHTML += `🛡️ Sven strikes the hearth middle segments, healing +${middleSingleCount * 10} HP and fortifying armor!<br>`;
             }
 
             if (currentRound >= 5) damageDealt *= 2; 
@@ -936,19 +922,8 @@ if (middleSingleCount > 0 && activeP.character === "Sven the Hearthwarden") {
 
             let finalDmgToTarget = damageDealt;
             if (targetP.character === "Knight") finalDmgToTarget = Math.max(0, finalDmgToTarget - 5);
-            if (targetP.incomingDmgReduction > 0) {
-                finalDmgToTarget = Math.max(0, finalDmgToTarget - targetP.incomingDmgReduction);
-                targetP.incomingDmgReduction = 0; 
-            }
-            if (targetP.defenseShield > 0) {
-                if (targetP.defenseShield >= finalDmgToTarget) {
-                    targetP.defenseShield -= finalDmgToTarget;
-                    finalDmgToTarget = 0;
-                } else {
-                    finalDmgToTarget -= targetP.defenseShield;
-                    targetP.defenseShield = 0;
-                }
-               // Queen B 5% damage reduction passive
+
+            // Queen B 5% damage reduction passive
             if (targetP.character === "Queen B" || targetP.character === "Royal Guardian Sovereign") {
                 finalDmgToTarget = Math.floor(finalDmgToTarget * 0.95);
             }
@@ -966,6 +941,25 @@ if (middleSingleCount > 0 && activeP.character === "Sven the Hearthwarden") {
                     targetP.defenseShield = 0;
                 }
             }
+
+            targetP.hp -= finalDmgToTarget;
+            logger.innerHTML += `⚔️ ${activeP.name} deals <strong>${finalDmgToTarget}</strong> damage to ${targetP.name} (Score: ${totalTurnScore})! (${targetP.name} HP: ${Math.max(0, targetP.hp)})<br>`;
+
+            if (targetP.hp <= 0) {
+                targetP.hp = 0;
+                targetP.isEliminated = true;
+                logger.innerHTML += `💀 <strong>${targetP.name}</strong> has fallen in battle!<br>`;
+            }
+
+            logger.scrollTop = logger.scrollHeight;
+
+            advanceTurnIndex();
+            if (activeTurnIndex === 0) {
+                currentRound++;
+            }
+            updateConquestUI();
+        }
+
         function submitTurn() {
             if (currentDartsLogged.length < 3) return;
             let activeP = activePlayersState[activeTurnIndex];
