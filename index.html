@@ -659,15 +659,15 @@
                 }
             });
 
-            const tbody = document.getElementById("scoreboard-body");
-            tbody.innerHTML = activePlayersState.map((p, idx) => `
-                <tr ${p.isEliminated ? 'style="opacity: 0.4; text-decoration: line-through;"' : ''}>
-                    <td><strong>${p.name}</strong> ${idx === activeTurnIndex ? '👑 (Turn)' : ''}</td>
-                    <td>${p.character}</td>
-                    <td>#${p.targetNumber}</td>
-                    <td>${p.hp} HP ${p.defenseShield > 0 ? `(🛡️ +${p.defenseShield})` : ''}</td>
-                </tr>
-            `).join('');
+          const tbody = document.getElementById("scoreboard-body");
+tbody.innerHTML = activePlayersState.map((p, idx) => `
+    <tr ${p.isEliminated ? 'style="opacity: 0.4; text-decoration: line-through;"' : ''}>
+        <td><strong>${p.name}</strong> ${idx === activeTurnIndex ? '👑 (Turn)' : ''}</td>
+        <td>${p.character}</td>
+        <td>#${p.targetNumber}</td>
+        <td>${p.hp} HP ${p.defenseShield > 0 ? `<span style="color: var(--accent-gold); font-weight: bold;">(🛡️ +${p.defenseShield})</span>` : ''}</td>
+    </tr>
+`).join('');
 
             currentDartsLogged = [];
             setModifier('inner');
