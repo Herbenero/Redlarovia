@@ -339,7 +339,7 @@
             { name: "Brom the Ironclad", role: "Fortress Vanguard", ability: "Hitting a Quad grants a +25 defense shield", img: "Brom.png" },
             { name: "Zephyr the Tempest", role: "Wind Channeler", ability: "Landing 3 Quads unleashes double damage", img: "Zephyr.png" },
             { name: "Ignatius the Flamekeeper", role: "Pyromancer", ability: "Hitting a Quad deals +10 piercing burn damage", img: "Ignatius.png" },
-            { name: "Lyra the Starcaller", role: "Celestial Mystic", ability: "Hitting a Quad grants +10 health and damage reduction", img: "Lyra.png" }
+            { name: "Lyra the Starcaller", role: "Celestial Mystic", ability: "Hitting a Quad grants +10 health and damage reduction", img: "Lyra.png" },
             { name: "Sven the Hearthwarden", role: "Tavern Bastion", ability: "Hitting a Middle segment heals +10 HP and reduces incoming damage", img: "Sven.png" }
         ];
 
@@ -948,34 +948,24 @@ if (middleSingleCount > 0 && activeP.character === "Sven the Hearthwarden") {
                     finalDmgToTarget -= targetP.defenseShield;
                     targetP.defenseShield = 0;
                 }
-                if (targetP.character === "QueenB" || targetP.character === "Queen B") {
-    finalDmgToTarget = Math.floor(finalDmgToTarget * 0.95);
-}
-
-if (targetP.incomingDmgReduction > 0) {
-    finalDmgToTarget = Math.max(0, finalDmgToTarget - targetP.incomingDmgReduction);
-    targetP.incomingDmgReduction = 0; 
-}
+               // Queen B 5% damage reduction passive
+            if (targetP.character === "Queen B" || targetP.character === "Royal Guardian Sovereign") {
+                finalDmgToTarget = Math.floor(finalDmgToTarget * 0.95);
             }
 
-            targetP.hp -= finalDmgToTarget;
-            logger.innerHTML += `⚔️ ${activeP.name} deals <strong>${finalDmgToTarget}</strong> damage to ${targetP.name} (Score: ${totalTurnScore})! (${targetP.name} HP: ${Math.max(0, targetP.hp)})<br>`;
-
-            if (targetP.hp <= 0) {
-                targetP.hp = 0;
-                targetP.isEliminated = true;
-                logger.innerHTML += `💀 <strong>${targetP.name}</strong> has fallen in battle!<br>`;
+            if (targetP.incomingDmgReduction > 0) {
+                finalDmgToTarget = Math.max(0, finalDmgToTarget - targetP.incomingDmgReduction);
+                targetP.incomingDmgReduction = 0; 
             }
-
-            logger.scrollTop = logger.scrollHeight;
-
-            advanceTurnIndex();
-            if (activeTurnIndex === 0) {
-                currentRound++;
+            if (targetP.defenseShield > 0) {
+                if (targetP.defenseShield >= finalDmgToTarget) {
+                    targetP.defenseShield -= finalDmgToTarget;
+                    finalDmgToTarget = 0;
+                } else {
+                    finalDmgToTarget -= targetP.defenseShield;
+                    targetP.defenseShield = 0;
+                }
             }
-            updateConquestUI();
-        }
-
         function submitTurn() {
             if (currentDartsLogged.length < 3) return;
             let activeP = activePlayersState[activeTurnIndex];
