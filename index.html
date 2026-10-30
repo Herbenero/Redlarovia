@@ -358,7 +358,7 @@
         let activeTurnIndex = 0;
         let turnOrderReversed = false;
         let eliminationCounter = 1; 
-        const MAX_ROUNDS = 8; // Updated max rounds to 8
+        const MAX_ROUNDS = 8; 
 
         // Active Turn Input State
         let currentDartsLogged = [];
@@ -611,7 +611,7 @@
             }
 
             let crisisBanner = document.getElementById("crisis-banner");
-            if (currentRound >= 6) { // Updated crisis start to round 6
+            if (currentRound >= 6) {
                 document.getElementById("act-title").innerText = "Act III: Realm Crisis (Double Damage!)";
                 crisisBanner.innerHTML = `<span class="highlight-crisis">⚠️ REALM CRISIS ACTIVE: Attacks deal doubled wrath!</span>`;
             } else {
@@ -927,7 +927,7 @@
                 logger.innerHTML += `🛡️ Sven strikes the hearth middle segments, healing +${middleSingleCount * 10} HP and fortifying armor!<br>`;
             }
 
-            if (currentRound >= 6) damageDealt *= 2; // Updated crisis damage multiplier start to round 6
+            if (currentRound >= 6) damageDealt *= 2; 
 
             let selectedTargetIndex = parseInt(document.getElementById("target-player-select").value);
             let targetP = activePlayersState[selectedTargetIndex];
@@ -943,7 +943,6 @@
             let finalDmgToTarget = damageDealt;
             if (targetP.character === "Knight") finalDmgToTarget = Math.max(0, finalDmgToTarget - 5);
 
-            // Queen B 5% damage reduction passive
             if (targetP.character === "Queen B" || targetP.character === "Royal Guardian Sovereign") {
                 finalDmgToTarget = Math.floor(finalDmgToTarget * 0.95);
             }
@@ -1018,17 +1017,29 @@
 
             let winner = survivors.length > 0 ? survivors[0] : [...activePlayersState].sort((a, b) => b.hp - a.hp)[0];
 
+            // Separate alive players (excluding winner) and dead players
+            let aliveSurvivors = activePlayersState
+                .filter(p => !p.isEliminated && p !== winner)
+                .sort((a, b) => b.hp - a.hp);
+
             let eliminatedPlayers = activePlayersState
                 .filter(p => p.isEliminated)
                 .sort((a, b) => b.eliminatedOrder - a.eliminatedOrder);
 
-            let eliminationHtml = "";
-            if (eliminatedPlayers.length > 0) {
-                eliminationHtml = `
-                    <div style="margin-top: 25px; background: #1e1813; padding: 15px; border-radius: 6px; border: 1px solid var(--text-muted); text-align: left; max-width: 400px; margin-left: auto; margin-right: auto;">
-                        <h4 style="margin-top: 0; color: var(--accent-gold); text-align: center;">📜 Fall of the Realm</h4>
+            // Combine list: Alive survivors first (highest HP to lowest), then eliminated players (latest out to first out at the bottom)
+            let fullStandings = [...aliveSurvivors, ...eliminatedPlayers];
+
+            let standingsHtml = "";
+            if (fullStandings.length > 0) {
+                standingsHtml = `
+                    <div style="margin-top: 25px; background: #1e1813; padding: 15px; border-radius: 6px; border: 1px solid var(--text-muted); text-align: left; max-width: 450px; margin-left: auto; margin-right: auto;">
+                        <h4 style="margin-top: 0; color: var(--accent-gold); text-align: center;">📜 Realm Standings & Fall of the Realm</h4>
                         <ol style="margin: 0; padding-left: 20px; font-size: 0.95rem;">
-                            ${eliminatedPlayers.map(p => `<li style="margin: 6px 0;"><strong>${p.name}</strong> (${p.character})</li>`).join('')}
+                            ${fullStandings.map(p => `
+                                <li style="margin: 6px 0; ${p.isEliminated ? 'opacity: 0.6; text-decoration: line-through;' : ''}">
+                                    <strong>${p.name}</strong> (${p.character}) — ${p.isEliminated ? 'Eliminated' : `${p.hp} HP remaining`}
+                                </li>
+                            `).join('')}
                         </ol>
                     </div>
                 `;
@@ -1038,9 +1049,9 @@
                 <div style="margin-bottom: 20px;">
                     <img src="${winner && winner.img ? winner.img : 'Redlar.png'}" alt="${winner ? winner.character : 'Champion'}" style="max-width: 220px; max-height: 280px; border-radius: 8px; border: 3px solid var(--accent-gold); object-fit: contain; box-shadow: 0 8px 16px rgba(0,0,0,0.8); background: #161412; padding: 5px;">
                 </div>
-                🏆 <strong>${winner ? winner.name : 'A Challenger'}</strong> playing as <strong>${winner ? winner.character : 'Hero'}</strong> has conquered Redlarovia!<br>
+                🏆 <strong>${winner ? winner.name : 'A Challenger'}</strong> playing as <strong>${winner ? winner.character : 'Hero'}</strong> has conquered Redlarovia with <strong>${winner ? winner.hp : 0} HP</strong> remaining!<br>
                 <span style="color:var(--text-muted); font-size:1rem;">The realm is saved within the campaign prophecy.</span>
-                ${eliminationHtml}
+                ${standingsHtml}
             `;
         }
     </script>
